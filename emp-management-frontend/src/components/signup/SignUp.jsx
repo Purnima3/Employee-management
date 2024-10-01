@@ -13,11 +13,10 @@ import Box from '@mui/material/Box';
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import Typography from '@mui/material/Typography';
 import Container from '@mui/material/Container';
-import { ToastContainer, toast } from 'react-toastify'; // Import ToastContainer and toast
-import 'react-toastify/dist/ReactToastify.css'; // Import Toast styles
-
+import { ToastContainer, toast } from 'react-toastify'; 
+import 'react-toastify/dist/ReactToastify.css'; 
 export default function SignUp() {
-  const [role, setRole] = React.useState('customer');
+  const [role, setRole] = React.useState('employee');
 
   const handleRoleChange = (event) => {
     setRole(event.target.value);
@@ -133,7 +132,7 @@ export default function SignUp() {
                   onChange={handleRoleChange}
                   label="Role"
                 >
-                  <MenuItem value="customer">Customer</MenuItem>
+                  <MenuItem value="employee">Employee</MenuItem>
                   <MenuItem value="admin">Admin</MenuItem>
                 </Select>
               </FormControl>

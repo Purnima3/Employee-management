@@ -12,16 +12,16 @@ import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import Typography from '@mui/material/Typography';
 import Container from '@mui/material/Container';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
-import { ToastContainer, toast } from 'react-toastify'; // Import ToastContainer and toast
-import 'react-toastify/dist/ReactToastify.css'; // Import Toast styles
-import { useUser } from '../../UserContext'; // Import User Context
-import { useNavigate } from 'react-router-dom'; // Import useNavigate
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import { useUser } from '../../UserContext'; 
+import { useNavigate } from 'react-router-dom'; 
 
 const defaultTheme = createTheme();
 
 function Login() {
-  const { setUser } = useUser(); // Get setUser from context
-  const navigate = useNavigate(); // Get the navigate function
+  const { setUser } = useUser();
+  const navigate = useNavigate();
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -44,23 +44,23 @@ function Login() {
       if (response.ok) {
         const result = await response.json();
         console.log('Login successful:', result);
-        toast.success('Login successful!'); // Show success toast
+        toast.success('Login successful!'); 
         
-        setUser(result.user); // Set user in context
-
-        // Redirect to the appropriate dashboard based on role
+        setUser(result.user);
+        console.log(result.user.role)
+       
         if (result.user.role === 'admin') {
-          navigate('/admin-dashboard'); // Redirect to Admin Dashboard
+          navigate('/admin-dashboard'); 
         } else if (result.user.role === 'employee') {
-          navigate('/employee-dashboard'); // Redirect to Employee Dashboard
+          navigate('/employee-dashboard'); 
         }
       } else {
         console.error('Login failed');
-        toast.error('Login failed. Please check your credentials.'); // Show error toast
+        toast.error('Login failed. Please check your credentials.'); 
       }
     } catch (error) {
       console.error('Network error', error);
-      toast.error('Network error. Please try again.'); // Show error toast for network error
+      toast.error('Network error. Please try again.'); 
     }
   };
 
@@ -68,7 +68,7 @@ function Login() {
     <ThemeProvider theme={defaultTheme}>
       <Container component="main" maxWidth="xs">
         <CssBaseline />
-        <ToastContainer /> {/* Add ToastContainer for notifications */}
+        <ToastContainer /> {/* ToastContainer for notifications */}
         <Box
           sx={{
             marginTop: 8,
