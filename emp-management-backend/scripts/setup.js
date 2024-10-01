@@ -8,7 +8,7 @@
     else{
         const newAdmin = User({
             firstName:"Admin",
-            lastname:'123',
+            lastName:'mehta',
             email:"admin@test.com",
             password:await bcrypt.hash("admin",10),
             role:'admin'
