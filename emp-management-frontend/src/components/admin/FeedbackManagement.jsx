@@ -23,21 +23,45 @@ function FeedbackManagement() {
   const [feedbacks, setFeedbacks] = useState([]);
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
   const [selectedFeedback, setSelectedFeedback] = useState(null);
+  const [userDetails, setUserDetails] = useState({});
 
   useEffect(() => {
     const fetchFeedbacks = async () => {
-      const response = await axios.get('http://localhost:3001/feedbacks/all_feedback');
+      const response = await axios.get('http://localhost:3001/feedback/get-all-feedback');
       setFeedbacks(response.data);
+      
+      // Fetch user details for each feedback
+      const details = {};
+      for (const feedback of response.data) {
+        try {
+          const userResponse = await axios.get(`http://localhost:3001/users/feedback/${feedback.userId}`);
+          details[feedback.userId] = userResponse.data; // Store user details by userId
+        } catch (error) {
+          console.error('Error fetching user details:', error);
+        }
+      }
+      setUserDetails(details); // Set the user details state
     };
 
     fetchFeedbacks();
   }, []);
-
+ 
+  const fetchUserDetails = async (userId) => {
+    try {
+      const response = await axios.get(`http://localhost:3001/users/${userId}`); // Adjust the URL as necessary
+      return response.data; // This will contain { firstName, lastName }
+    } catch (error) {
+      console.error('Error fetching user details:', error);
+      throw error; // You can handle this error further up the call stack
+    }
+  };
   const handleDelete = async () => {
     if (!selectedFeedback) return;
 
     try {
-      await axios.delete(`http://localhost:3001/feedbacks/delete-feedback/${selectedFeedback._id}`);
+      console.log(selectedFeedback._id)
+      await axios.delete(`http://localhost:3001/feedback/delete-feedback/${selectedFeedback._id}`);
+
       setFeedbacks(feedbacks.filter((feedback) => feedback._id !== selectedFeedback._id));
       setOpenDeleteDialog(false);
       setSelectedFeedback(null);
@@ -72,8 +96,8 @@ function FeedbackManagement() {
             {feedbacks.map((feedback) => (
               <TableRow key={feedback._id}>
                 <TableCell>{feedback._id}</TableCell>
-                <TableCell>{feedback.user}</TableCell>
-                <TableCell>{feedback.comment}</TableCell>
+                <TableCell>{userDetails[feedback.userId] ? `${userDetails[feedback.userId].firstName} ${userDetails[feedback.userId].lastName}` : 'Loading...'}</TableCell>
+                <TableCell>{feedback.feedback}</TableCell>
                 <TableCell>{feedback.rating}</TableCell>
                 <TableCell>
                   <Button

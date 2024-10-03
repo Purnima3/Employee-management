@@ -7,7 +7,8 @@ const router = express.Router()
 router.post("/create-feedback",createFeedback)
 router.get("/get-all-feedback",getAllFeedback)
 router.get('/:materialId',feedbackByMaterialId)
-router.delete('/delete-feedback',deleteFeedback)
+router.delete('/delete-feedback/:id',deleteFeedback)
+
 
 module.exports = router;
 // Post feedback

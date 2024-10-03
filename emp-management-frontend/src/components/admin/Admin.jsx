@@ -11,12 +11,13 @@ import {
   AppBar,
   Toolbar,
 } from '@mui/material';
-import { Home, Feedback as FeedbackIcon, People } from '@mui/icons-material';
+import { Home, Feedback as FeedbackIcon, People, LocalLibrary } from '@mui/icons-material';
 import axios from 'axios';
 import { ToastContainer } from 'react-toastify';
 import UserManagement from './UserManagement';
 import LearningMaterialManagement from './LearningMaterial';
 import FeedbackManagement from './FeedbackManagement';
+import Dashboard from './Dashboard';
 
 const drawerWidth = 240;
 
@@ -50,27 +51,32 @@ function Admin() {
           },
         }}
       >
-        <Toolbar /> {/* This will create space at the top of the drawer */}
+        <Toolbar />
         <List>
+        <ListItem button onClick={() => setActiveSection('dashboard')}>
+            <ListItemIcon><Home/></ListItemIcon>
+            <ListItemText primary="dashboard" />
+          </ListItem>
           <ListItem button onClick={() => setActiveSection('users')}>
             <ListItemIcon><People /></ListItemIcon>
             <ListItemText primary="Users" />
           </ListItem>
           <ListItem button onClick={() => setActiveSection('learningMaterials')}>
-            <ListItemIcon><FeedbackIcon /></ListItemIcon>
+            <ListItemIcon><LocalLibrary/></ListItemIcon>
             <ListItemText primary="Learning Materials" />
           </ListItem>
           <ListItem button onClick={() => setActiveSection('feedback')}>
-            <ListItemIcon><FeedbackIcon /></ListItemIcon>
+            <ListItemIcon><FeedbackIcon/></ListItemIcon>
             <ListItemText primary="Feedback" />
           </ListItem>
         </List>
       </Drawer>
 
-      <Box component="main" sx={{ flexGrow: 1, bgcolor: 'background.default', p: 3, marginLeft: `${drawerWidth}px`, marginTop: '64px' }}>
+      <Box component="main" sx={{ flexGrow: 1, bgcolor: 'background.default', p: 14,  marginTop: '64px' }}>
         {activeSection === 'users' && <UserManagement />}
         {activeSection === 'learningMaterials' && <LearningMaterialManagement />}
         {activeSection === 'feedback' && <FeedbackManagement />}
+        {activeSection === 'dashboard' && <Dashboard />}
       </Box>
     </Box>
   );

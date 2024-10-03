@@ -29,7 +29,7 @@ function LearningMaterial() {
 
   useEffect(() => {
     const fetchLearningMaterials = async () => {
-      const response = await axios.get('http://localhost:3001/learning-materials/fetch-learning-materials');
+      const response = await axios.get('http://localhost:3001/learning-materials/get-material');
       setLearningMaterials(response.data);
     };
 
@@ -38,7 +38,7 @@ function LearningMaterial() {
 
   const handleAddLearningMaterial = async () => {
     try {
-      const response = await axios.post('http://localhost:3001/learning-materials/create-learning-material', newLearningMaterial);
+      const response = await axios.post('http://localhost:3001/learning-materials/create-material', newLearningMaterial);
       setLearningMaterials([...learningMaterials, response.data]);
       setOpenLearningMaterialDialog(false);
       toast.success('Learning material added successfully!');
@@ -104,7 +104,7 @@ function LearningMaterial() {
         </Table>
       </TableContainer>
 
-      {/* Add Learning Material Dialog */}
+      
       <Dialog open={openLearningMaterialDialog} onClose={() => setOpenLearningMaterialDialog(false)}>
         <DialogTitle>Add Learning Material</DialogTitle>
         <DialogContent>

@@ -30,25 +30,57 @@ function UserManagement() {
   const [openUserDialog, setOpenUserDialog] = useState(false);
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
+  const [searchQuery, setSearchQuery] = useState(''); // State to hold the search query
 
+  // Fetch users on component mount
   useEffect(() => {
     const fetchUsers = async () => {
-      const response = await axios.get('http://localhost:3001/users/fetch-user');
-      setUsers(response.data);
+      try {
+        const response = await axios.get('http://localhost:3001/users/fetch-user');
+        setUsers(response.data);
+      } catch (error) {
+        console.error('Error fetching users:', error);
+        toast.error('Failed to fetch users.');
+      }
     };
 
     fetchUsers();
   }, []);
 
+  const generateRandomPassword = (length = 8) => {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()';
+    let password = '';
+    for (let i = 0; i < length; i++) {
+      password += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return password;
+  };
+
   const handleAddUser = async () => {
+    const password = generateRandomPassword(); // Generate a random password
+    const userToAdd = { ...newUser, password }; // Include the password in the user data
+
     try {
-      const response = await axios.post('http://localhost:3001/users/create-user', newUser);
-      setUsers([...users, response.data]);
-      setOpenUserDialog(false);
-      toast.success('User added successfully!');
+      console.log('User data being sent:', userToAdd);
+      // Send user data with password to the backend
+      await axios.post('http://localhost:3001/users/create-user', userToAdd);
+
+      // Send email with credentials to the admin (or user)
+      await axios.post('http://localhost:3001/users/send-email', { email: userToAdd.email, password });
+
+      // Reset form
       setNewUser({ firstName: '', lastName: '', email: '', role: 'employee' });
+      setOpenUserDialog(false);
+
+      // Refetch users to update the list
+      const response = await axios.get('http://localhost:3001/users/fetch-user');
+      setUsers(response.data);
+
+      // Show success toast
+      toast.success('User added successfully!');
     } catch (error) {
-      toast.error('Error adding user');
+      // Show error toast if something goes wrong
+      toast.error('Error adding user: ' + (error.response?.data?.message || error.message));
       console.error('Error adding user:', error);
     }
   };
@@ -73,11 +105,29 @@ function UserManagement() {
     setOpenDeleteDialog(true);
   };
 
+  // Filter users based on the search query
+  const filteredUsers = users.filter((user) =>
+    user.email.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   return (
     <Box>
       <ToastContainer />
       <Typography variant="h6">Users</Typography>
-      <Button variant="contained" onClick={() => setOpenUserDialog(true)} sx={{ marginBottom: '1rem' }}>Add User</Button>
+
+      {/* Search Bar */}
+      <TextField
+        label="Search by Email"
+        value={searchQuery}
+        onChange={(e) => setSearchQuery(e.target.value)}
+        fullWidth
+        sx={{ marginBottom: '1rem' }}
+      />
+
+      <Button variant="contained" onClick={() => setOpenUserDialog(true)} sx={{ marginBottom: '1rem' }}>
+        Add User
+      </Button>
+
       <TableContainer component={Paper}>
         <Table>
           <TableHead>
@@ -90,24 +140,32 @@ function UserManagement() {
             </TableRow>
           </TableHead>
           <TableBody>
-            {users.map((user) => (
-              <TableRow key={user._id}>
-                <TableCell>{user.firstName}</TableCell>
-                <TableCell>{user.lastName}</TableCell>
-                <TableCell>{user.email}</TableCell>
-                <TableCell>{user.role}</TableCell>
-                <TableCell>
-                  <Button
-                    variant="contained"
-                    color="error"
-                    startIcon={<Delete />}
-                    onClick={() => openDeleteConfirmation(user)}
-                  >
-                    Delete
-                  </Button>
+            {filteredUsers.length > 0 ? (
+              filteredUsers.map((user) => (
+                <TableRow key={user._id}>
+                  <TableCell>{user.firstName}</TableCell>
+                  <TableCell>{user.lastName}</TableCell>
+                  <TableCell>{user.email}</TableCell>
+                  <TableCell>{user.role}</TableCell>
+                  <TableCell>
+                    <Button
+                      variant="contained"
+                      color="error"
+                      startIcon={<Delete />}
+                      onClick={() => openDeleteConfirmation(user)}
+                    >
+                      Delete
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))
+            ) : (
+              <TableRow>
+                <TableCell colSpan={5} align="center">
+                  No users found.
                 </TableCell>
               </TableRow>
-            ))}
+            )}
           </TableBody>
         </Table>
       </TableContainer>
