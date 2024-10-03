@@ -13,6 +13,7 @@ const sendEmailRouter = require('./routes/send-email')
 const feedbackRouter = require('./routes/feedback')
 const ForgetPassword = require('./routes/forgetPassword');
 const dashboardRoutes = require('./routes/Dashboard')
+const quizRoutes = require('./routes/quiz')
 require('dotenv').config();
 
 const app = express();
@@ -38,6 +39,7 @@ app.use('/',sendEmailRouter)
 app.use('/',feedbackRouter)
 app.use('/',ForgetPassword)
 app.use('/dashboard',dashboardRoutes)
+app.use('/',quizRoutes)
 
 app.get("/", (req, res) => {
     res.send("Hello World");
