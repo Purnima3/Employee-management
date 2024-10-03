@@ -19,6 +19,7 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
+  TablePagination,
 } from '@mui/material';
 import { Delete } from '@mui/icons-material';
 import axios from 'axios';
@@ -30,9 +31,10 @@ function UserManagement() {
   const [openUserDialog, setOpenUserDialog] = useState(false);
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
-  const [searchQuery, setSearchQuery] = useState(''); // State to hold the search query
+  const [searchQuery, setSearchQuery] = useState('');
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(5); // Number of rows per page
 
-  // Fetch users on component mount
   useEffect(() => {
     const fetchUsers = async () => {
       try {
@@ -57,29 +59,20 @@ function UserManagement() {
   };
 
   const handleAddUser = async () => {
-    const password = generateRandomPassword(); // Generate a random password
-    const userToAdd = { ...newUser, password }; // Include the password in the user data
+    const password = generateRandomPassword();
+    const userToAdd = { ...newUser, password };
 
     try {
-      console.log('User data being sent:', userToAdd);
-      // Send user data with password to the backend
       await axios.post('http://localhost:3001/users/create-user', userToAdd);
-
-      // Send email with credentials to the admin (or user)
       await axios.post('http://localhost:3001/users/send-email', { email: userToAdd.email, password });
 
-      // Reset form
       setNewUser({ firstName: '', lastName: '', email: '', role: 'employee' });
       setOpenUserDialog(false);
-
-      // Refetch users to update the list
+      
       const response = await axios.get('http://localhost:3001/users/fetch-user');
       setUsers(response.data);
-
-      // Show success toast
       toast.success('User added successfully!');
     } catch (error) {
-      // Show error toast if something goes wrong
       toast.error('Error adding user: ' + (error.response?.data?.message || error.message));
       console.error('Error adding user:', error);
     }
@@ -141,7 +134,7 @@ function UserManagement() {
           </TableHead>
           <TableBody>
             {filteredUsers.length > 0 ? (
-              filteredUsers.map((user) => (
+              filteredUsers.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((user) => (
                 <TableRow key={user._id}>
                   <TableCell>{user.firstName}</TableCell>
                   <TableCell>{user.lastName}</TableCell>
@@ -169,6 +162,20 @@ function UserManagement() {
           </TableBody>
         </Table>
       </TableContainer>
+
+      {/* Pagination */}
+      <TablePagination
+        rowsPerPageOptions={[5, 10, 25]}
+        component="div"
+        count={filteredUsers.length}
+        rowsPerPage={rowsPerPage}
+        page={page}
+        onPageChange={(event, newPage) => setPage(newPage)}
+        onRowsPerPageChange={(event) => {
+          setRowsPerPage(parseInt(event.target.value, 10));
+          setPage(0); // Reset page to 0 when rows per page changes
+        }}
+      />
 
       {/* Add User Dialog */}
       <Dialog open={openUserDialog} onClose={() => setOpenUserDialog(false)}>

@@ -14,6 +14,9 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
+  CircularProgress,
+  TablePagination,
+  TextField,
 } from '@mui/material';
 import { Delete } from '@mui/icons-material';
 import axios from 'axios';
@@ -24,44 +27,53 @@ function FeedbackManagement() {
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
   const [selectedFeedback, setSelectedFeedback] = useState(null);
   const [userDetails, setUserDetails] = useState({});
+  const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState(''); // Added search query state
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(5);
 
   useEffect(() => {
     const fetchFeedbacks = async () => {
-      const response = await axios.get('http://localhost:3001/feedback/get-all-feedback');
-      setFeedbacks(response.data);
-      
-      // Fetch user details for each feedback
-      const details = {};
-      for (const feedback of response.data) {
-        try {
-          const userResponse = await axios.get(`http://localhost:3001/users/feedback/${feedback.userId}`);
-          details[feedback.userId] = userResponse.data; // Store user details by userId
-        } catch (error) {
-          console.error('Error fetching user details:', error);
-        }
+      try {
+        const response = await axios.get('http://localhost:3001/feedback/get-all-feedback');
+        setFeedbacks(response.data);
+
+        const userIds = response.data.map((feedback) => feedback.userId);
+        const uniqueUserIds = [...new Set(userIds)];
+
+        const userDetailsPromises = uniqueUserIds.map(async (userId) => {
+          try {
+            const userResponse = await axios.get(`http://localhost:3001/users/feedback/${userId}`);
+            return { userId, userData: userResponse.data };
+          } catch (error) {
+            console.error('Error fetching user details:', error);
+            return { userId, userData: null };
+          }
+        });
+
+        const userDetailsResults = await Promise.all(userDetailsPromises);
+        const details = userDetailsResults.reduce((acc, { userId, userData }) => {
+          acc[userId] = userData;
+          return acc;
+        }, {});
+
+        setUserDetails(details);
+        setLoading(false);
+      } catch (error) {
+        console.error('Error fetching feedbacks:', error);
+        toast.error('Failed to fetch feedbacks.');
+        setLoading(false);
       }
-      setUserDetails(details); // Set the user details state
     };
 
     fetchFeedbacks();
   }, []);
- 
-  const fetchUserDetails = async (userId) => {
-    try {
-      const response = await axios.get(`http://localhost:3001/users/${userId}`); // Adjust the URL as necessary
-      return response.data; // This will contain { firstName, lastName }
-    } catch (error) {
-      console.error('Error fetching user details:', error);
-      throw error; // You can handle this error further up the call stack
-    }
-  };
+
   const handleDelete = async () => {
     if (!selectedFeedback) return;
 
     try {
-      console.log(selectedFeedback._id)
       await axios.delete(`http://localhost:3001/feedback/delete-feedback/${selectedFeedback._id}`);
-
       setFeedbacks(feedbacks.filter((feedback) => feedback._id !== selectedFeedback._id));
       setOpenDeleteDialog(false);
       setSelectedFeedback(null);
@@ -77,43 +89,86 @@ function FeedbackManagement() {
     setOpenDeleteDialog(true);
   };
 
+  // Filter feedback based on the search query
+  const filteredFeedbacks = feedbacks.filter((feedback) =>
+    feedback.feedback.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   return (
     <Box>
       <ToastContainer />
       <Typography variant="h6">Feedback</Typography>
-      <TableContainer component={Paper}>
-        <Table>
-          <TableHead>
-            <TableRow>
-              <TableCell>ID</TableCell>
-              <TableCell>User</TableCell>
-              <TableCell>Comment</TableCell>
-              <TableCell>Rating</TableCell>
-              <TableCell>Actions</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {feedbacks.map((feedback) => (
-              <TableRow key={feedback._id}>
-                <TableCell>{feedback._id}</TableCell>
-                <TableCell>{userDetails[feedback.userId] ? `${userDetails[feedback.userId].firstName} ${userDetails[feedback.userId].lastName}` : 'Loading...'}</TableCell>
-                <TableCell>{feedback.feedback}</TableCell>
-                <TableCell>{feedback.rating}</TableCell>
-                <TableCell>
-                  <Button
-                    variant="contained"
-                    color="error"
-                    startIcon={<Delete />}
-                    onClick={() => openDeleteConfirmation(feedback)}
-                  >
-                    Delete
-                  </Button>
-                </TableCell>
+
+      {/* Search Bar */}
+      <TextField
+        label="Search Feedback"
+        value={searchQuery}
+        onChange={(e) => setSearchQuery(e.target.value)}
+        fullWidth
+        sx={{ marginBottom: '1rem' }}
+      />
+
+      {loading ? (
+        <Box display="flex" justifyContent="center" alignItems="center" height="100vh">
+          <CircularProgress />
+        </Box>
+      ) : (
+        <TableContainer component={Paper}>
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableCell style={{ fontWeight: 'bold' }}>ID</TableCell>
+                <TableCell style={{ fontWeight: 'bold' }}>User</TableCell>
+                <TableCell style={{ fontWeight: 'bold' }}>Comment</TableCell>
+                <TableCell style={{ fontWeight: 'bold' }}>Rating</TableCell>
+                <TableCell style={{ fontWeight: 'bold' }}>Actions</TableCell>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
+            </TableHead>
+            <TableBody>
+              {filteredFeedbacks.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((feedback, index) => {
+             
+
+                return (
+                  <TableRow key={feedback._id} >
+                    <TableCell>{feedback._id}</TableCell>
+                    <TableCell>
+                      {userDetails[feedback.userId]
+                        ? `${userDetails[feedback.userId].firstName} ${userDetails[feedback.userId].lastName}`
+                        : 'User data unavailable'}
+                    </TableCell>
+                    <TableCell>{feedback.feedback}</TableCell>
+                    <TableCell>{feedback.rating}</TableCell>
+                    <TableCell>
+                      <Button
+                        variant="contained"
+                        color="error"
+                        startIcon={<Delete />}
+                        onClick={() => openDeleteConfirmation(feedback)}
+                      >
+                        Delete
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      )}
+
+      {/* Pagination */}
+      <TablePagination
+        rowsPerPageOptions={[5, 10, 25]}
+        component="div"
+        count={filteredFeedbacks.length} // Use filtered feedback count
+        rowsPerPage={rowsPerPage}
+        page={page}
+        onPageChange={(event, newPage) => setPage(newPage)}
+        onRowsPerPageChange={(event) => {
+          setRowsPerPage(parseInt(event.target.value, 10));
+          setPage(0); // Reset page to 0 when rows per page changes
+        }}
+      />
 
       {/* Delete Confirmation Dialog */}
       <Dialog open={openDeleteDialog} onClose={() => setOpenDeleteDialog(false)}>

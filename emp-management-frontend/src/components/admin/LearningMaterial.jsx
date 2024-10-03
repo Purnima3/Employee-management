@@ -15,6 +15,7 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
+  TablePagination,
 } from '@mui/material';
 import { Delete } from '@mui/icons-material';
 import axios from 'axios';
@@ -26,11 +27,19 @@ function LearningMaterial() {
   const [openLearningMaterialDialog, setOpenLearningMaterialDialog] = useState(false);
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
   const [selectedMaterial, setSelectedMaterial] = useState(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(5); // Number of rows per page
 
   useEffect(() => {
     const fetchLearningMaterials = async () => {
-      const response = await axios.get('http://localhost:3001/learning-materials/get-material');
-      setLearningMaterials(response.data);
+      try {
+        const response = await axios.get('http://localhost:3001/learning-materials/get-material');
+        setLearningMaterials(response.data);
+      } catch (error) {
+        console.error('Error fetching learning materials:', error);
+        toast.error('Failed to fetch learning materials.');
+      }
     };
 
     fetchLearningMaterials();
@@ -44,7 +53,7 @@ function LearningMaterial() {
       toast.success('Learning material added successfully!');
       setNewLearningMaterial({ title: '', description: '' });
     } catch (error) {
-      toast.error('Error adding learning material');
+      toast.error('Error adding learning material: ' + (error.response?.data?.message || error.message));
       console.error('Error adding learning material:', error);
     }
   };
@@ -69,11 +78,29 @@ function LearningMaterial() {
     setOpenDeleteDialog(true);
   };
 
+  // Filter learning materials based on the search query
+  const filteredLearningMaterials = learningMaterials.filter((material) =>
+    material.title.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   return (
     <Box>
       <ToastContainer />
       <Typography variant="h6">Learning Materials</Typography>
-      <Button variant="contained" onClick={() => setOpenLearningMaterialDialog(true)} sx={{ marginBottom: '1rem' }}>Add Learning Material</Button>
+
+      {/* Search Bar */}
+      <TextField
+        label="Search by Title"
+        value={searchQuery}
+        onChange={(e) => setSearchQuery(e.target.value)}
+        fullWidth
+        sx={{ marginBottom: '1rem' }}
+      />
+
+      <Button variant="contained" onClick={() => setOpenLearningMaterialDialog(true)} sx={{ marginBottom: '1rem' }}>
+        Add Learning Material
+      </Button>
+
       <TableContainer component={Paper}>
         <Table>
           <TableHead>
@@ -84,27 +111,49 @@ function LearningMaterial() {
             </TableRow>
           </TableHead>
           <TableBody>
-            {learningMaterials.map((material) => (
-              <TableRow key={material._id}>
-                <TableCell>{material.title}</TableCell>
-                <TableCell>{material.description}</TableCell>
-                <TableCell>
-                  <Button
-                    variant="contained"
-                    color="error"
-                    startIcon={<Delete />}
-                    onClick={() => openDeleteConfirmation(material)}
-                  >
-                    Delete
-                  </Button>
+            {filteredLearningMaterials.length > 0 ? (
+              filteredLearningMaterials.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((material) => (
+                <TableRow key={material._id}>
+                  <TableCell>{material.title}</TableCell>
+                  <TableCell>{material.description}</TableCell>
+                  <TableCell>
+                    <Button
+                      variant="contained"
+                      color="error"
+                      startIcon={<Delete />}
+                      onClick={() => openDeleteConfirmation(material)}
+                    >
+                      Delete
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))
+            ) : (
+              <TableRow>
+                <TableCell colSpan={3} align="center">
+                  No learning materials found.
                 </TableCell>
               </TableRow>
-            ))}
+            )}
           </TableBody>
         </Table>
       </TableContainer>
 
-      
+      {/* Pagination */}
+      <TablePagination
+        rowsPerPageOptions={[5, 10, 25]}
+        component="div"
+        count={filteredLearningMaterials.length}
+        rowsPerPage={rowsPerPage}
+        page={page}
+        onPageChange={(event, newPage) => setPage(newPage)}
+        onRowsPerPageChange={(event) => {
+          setRowsPerPage(parseInt(event.target.value, 10));
+          setPage(0); // Reset page to 0 when rows per page changes
+        }}
+      />
+
+      {/* Add Learning Material Dialog */}
       <Dialog open={openLearningMaterialDialog} onClose={() => setOpenLearningMaterialDialog(false)}>
         <DialogTitle>Add Learning Material</DialogTitle>
         <DialogContent>

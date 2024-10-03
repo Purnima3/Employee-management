@@ -72,7 +72,7 @@ function Admin() {
         </List>
       </Drawer>
 
-      <Box component="main" sx={{ flexGrow: 1, bgcolor: 'background.default', p: 14,  marginTop: '64px' }}>
+      <Box component="main" sx={{ flexGrow: 1, bgcolor: 'background.default', p: 14,  marginTop: '54px' }}>
         {activeSection === 'users' && <UserManagement />}
         {activeSection === 'learningMaterials' && <LearningMaterialManagement />}
         {activeSection === 'feedback' && <FeedbackManagement />}
