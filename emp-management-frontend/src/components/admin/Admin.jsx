@@ -57,6 +57,10 @@ function Admin() {
             <ListItemIcon><Home/></ListItemIcon>
             <ListItemText primary="dashboard" />
           </ListItem>
+          <ListItem button onClick={() => setActiveSection('dashboard')}>
+            <ListItemIcon><Home/></ListItemIcon>
+            <ListItemText primary="dashboard" />
+          </ListItem>
           <ListItem button onClick={() => setActiveSection('users')}>
             <ListItemIcon><People /></ListItemIcon>
             <ListItemText primary="Users" />
