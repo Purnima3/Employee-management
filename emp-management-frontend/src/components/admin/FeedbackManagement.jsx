@@ -28,14 +28,20 @@ function FeedbackManagement() {
   const [selectedFeedback, setSelectedFeedback] = useState(null);
   const [userDetails, setUserDetails] = useState({});
   const [loading, setLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState(''); // Added search query state
+  const [searchQuery, setSearchQuery] = useState('');
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
 
   useEffect(() => {
     const fetchFeedbacks = async () => {
       try {
-        const response = await axios.get('http://localhost:3001/feedback/get-all-feedback');
+        const token = localStorage.getItem('token');
+        const response = await axios.get('http://localhost:3001/feedback/get-all-feedback',{
+          headers: {
+            Authorization: `Bearer ${token}`, 
+            'Content-Type': 'application/json',
+          },
+        });
         setFeedbacks(response.data);
 
         const userIds = response.data.map((feedback) => feedback.userId);
@@ -43,7 +49,13 @@ function FeedbackManagement() {
 
         const userDetailsPromises = uniqueUserIds.map(async (userId) => {
           try {
-            const userResponse = await axios.get(`http://localhost:3001/users/feedback/${userId}`);
+            const token = localStorage.getItem('token');
+            const userResponse = await axios.get(`http://localhost:3001/users/feedback/${userId}`,{
+              headers: {
+                Authorization: `Bearer ${token}`, 
+                'Content-Type': 'application/json',
+              },
+            });
             return { userId, userData: userResponse.data };
           } catch (error) {
             console.error('Error fetching user details:', error);
@@ -73,7 +85,13 @@ function FeedbackManagement() {
     if (!selectedFeedback) return;
 
     try {
-      await axios.delete(`http://localhost:3001/feedback/delete-feedback/${selectedFeedback._id}`);
+      const token = localStorage.getItem('token');
+      await axios.delete(`http://localhost:3001/feedback/delete-feedback/${selectedFeedback._id}`,{
+        headers: {
+          Authorization: `Bearer ${token}`, 
+          'Content-Type': 'application/json',
+        },
+      });
       setFeedbacks(feedbacks.filter((feedback) => feedback._id !== selectedFeedback._id));
       setOpenDeleteDialog(false);
       setSelectedFeedback(null);
@@ -89,7 +107,6 @@ function FeedbackManagement() {
     setOpenDeleteDialog(true);
   };
 
-  // Filter feedback based on the search query
   const filteredFeedbacks = feedbacks.filter((feedback) =>
     feedback.feedback.toLowerCase().includes(searchQuery.toLowerCase())
   );
@@ -97,7 +114,6 @@ function FeedbackManagement() {
   return (
     <Box>
       <ToastContainer />
-      <Typography variant="h6">Feedback</Typography>
 
       {/* Search Bar */}
       <TextField
@@ -117,7 +133,6 @@ function FeedbackManagement() {
           <Table>
             <TableHead>
               <TableRow>
-                <TableCell style={{ fontWeight: 'bold' }}>ID</TableCell>
                 <TableCell style={{ fontWeight: 'bold' }}>User</TableCell>
                 <TableCell style={{ fontWeight: 'bold' }}>Comment</TableCell>
                 <TableCell style={{ fontWeight: 'bold' }}>Rating</TableCell>
@@ -130,7 +145,6 @@ function FeedbackManagement() {
 
                 return (
                   <TableRow key={feedback._id} >
-                    <TableCell>{feedback._id}</TableCell>
                     <TableCell>
                       {userDetails[feedback.userId]
                         ? `${userDetails[feedback.userId].firstName} ${userDetails[feedback.userId].lastName}`
@@ -160,7 +174,7 @@ function FeedbackManagement() {
       <TablePagination
         rowsPerPageOptions={[5, 10, 25]}
         component="div"
-        count={filteredFeedbacks.length} // Use filtered feedback count
+        count={filteredFeedbacks.length} 
         rowsPerPage={rowsPerPage}
         page={page}
         onPageChange={(event, newPage) => setPage(newPage)}

@@ -1,8 +1,11 @@
 const express = require("express");
 const router = express.Router();
-const { createModule } = require("../controller/module");
+const moduleController = require('../controller/module');
 
-// Route to create a new module
-router.post("/create-module", createModule);
+const authMiddleware = require('../middleware/authMiddleware');
+
+router.post('/create-module', moduleController.createModule,authMiddleware);
+router.get('/get-modules/:learningMaterialId', moduleController.getModulesByLearningMaterial,authMiddleware);
+
 
 module.exports = router;

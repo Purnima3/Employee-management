@@ -22,12 +22,21 @@ import Dashboard from './Dashboard';
 const drawerWidth = 240;
 
 function Admin() {
-  const [activeSection, setActiveSection] = useState('users');
+  // Initialize activeSection from localStorage or default to 'dashboard'
+  const [activeSection, setActiveSection] = useState(() => {
+    return localStorage.getItem('activeSection') || 'dashboard';
+  });
+
+  // Store activeSection in localStorage whenever it changes
+  useEffect(() => {
+    localStorage.setItem('activeSection', activeSection);
+  }, [activeSection]);
 
   // Handle Logout
   const handleLogout = () => {
-    localStorage.removeItem('token'); 
-    window.location.href = '/login'; 
+    localStorage.removeItem('token');
+    localStorage.removeItem('activeSection'); // Remove activeSection on logout
+    window.location.href = '/login';
   };
 
   return (
@@ -53,9 +62,9 @@ function Admin() {
       >
         <Toolbar />
         <List>
-        <ListItem button onClick={() => setActiveSection('dashboard')}>
+          <ListItem button onClick={() => setActiveSection('dashboard')}>
             <ListItemIcon><Home/></ListItemIcon>
-            <ListItemText primary="dashboard" />
+            <ListItemText primary="Dashboard" />
           </ListItem>
           <ListItem button onClick={() => setActiveSection('users')}>
             <ListItemIcon><People /></ListItemIcon>
@@ -72,11 +81,11 @@ function Admin() {
         </List>
       </Drawer>
 
-      <Box component="main" sx={{ flexGrow: 1, bgcolor: 'background.default', p: 14,  marginTop: '54px' }}>
+      <Box component="main" sx={{ flexGrow: 1, bgcolor: 'background.default', p: 14, marginTop: '44px' }}>
+        {activeSection === 'dashboard' && <Dashboard />}
         {activeSection === 'users' && <UserManagement />}
         {activeSection === 'learningMaterials' && <LearningMaterialManagement />}
         {activeSection === 'feedback' && <FeedbackManagement />}
-        {activeSection === 'dashboard' && <Dashboard />}
       </Box>
     </Box>
   );

@@ -32,9 +32,8 @@ function Login() {
   const [isOtpSent, setIsOtpSent] = useState(false); // State to track if OTP is sent
 
   const handleForgotPassword = async () => {
-    // Send OTP to email
     try {
-      const response = await fetch('http://localhost:3001/send-otp', { // Updated to use send-otp API
+      const response = await fetch('http://localhost:3001/users/send-otp', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email }), // Send email to the API
@@ -44,7 +43,8 @@ function Login() {
         toast.success('OTP sent to your email!');
         setIsOtpSent(true); // Mark OTP as sent
       } else {
-        toast.error('Error sending OTP. Please check your email.');
+        const errorData = await response.json();
+        toast.error(errorData.message || 'Error sending OTP. Please check your email.');
       }
     } catch (error) {
       console.error('Error:', error);
@@ -53,12 +53,11 @@ function Login() {
   };
 
   const handleVerifyOtp = async () => {
-    // Verify OTP and update password
     try {
-      const response = await fetch('http://localhost:3001/verify-otp', {
+      const response = await fetch('http://localhost:3001/users/verify-otp', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, otp, newPassword }),
+        body: JSON.stringify({ email, otp, newPassword }), 
       });
 
       if (response.ok) {
@@ -66,10 +65,11 @@ function Login() {
         setEmail('');
         setOtp('');
         setNewPassword('');
-        setIsOtpSent(false); // Reset OTP sent state
-        setOpenDialog(false); // Close dialog on success
+        setIsOtpSent(false); 
+        setOpenDialog(false); 
       } else {
-        toast.error('Invalid OTP or failed to update password.');
+        const errorData = await response.json();
+        toast.error(errorData.message || 'Invalid OTP or failed to update password.');
       }
     } catch (error) {
       console.error('Error:', error);
@@ -92,9 +92,14 @@ function Login() {
         body: JSON.stringify(formData),
       });
 
+    
+
       if (response.ok) {
         const result = await response.json();
         toast.success('Login successful!');
+        localStorage.setItem('token', result.token); // Assuming the response contains a `token` field
+        localStorage.setItem('user', JSON.stringify(result.user)); // Save user info as a JSON string
+
         setUser(result.user);
         
         if (result.user.role === 'admin') {
@@ -103,7 +108,8 @@ function Login() {
           navigate('/employee-dashboard'); 
         }
       } else {
-        toast.error('Login failed. Please check your credentials.');
+        const errorData = await response.json();
+        toast.error(errorData.message || 'Login failed. Please check your credentials.');
       }
     } catch (error) {
       toast.error('Network error. Please try again.');
@@ -128,25 +134,22 @@ function Login() {
             <Button type="submit" fullWidth variant="contained" sx={{ mt: 3, mb: 2 }}>
               Sign In
             </Button>
-            <Grid container>
+            <Grid container  sx={{ textAlign: 'center' }}>
               <Grid item xs>
                 <Link href="#" variant="body2" onClick={() => setOpenDialog(true)}>
                   Forgot password?
                 </Link>
               </Grid>
               <Grid item>
-                <Link href="/signup" variant="body2">
-                  {"Don't have an account? Sign Up"}
-                </Link>
               </Grid>
             </Grid>
           </Box>
         </Box>
         
         <Dialog open={openDialog} onClose={() => setOpenDialog(false)}>
-          <DialogTitle>Forgot Password</DialogTitle>
+        <DialogTitle sx={{ textAlign: 'center' }}>Forgot Password</DialogTitle>
           <DialogContent>
-            {!isOtpSent ? ( // Conditional rendering based on OTP sent status
+            {!isOtpSent ? (
               <TextField
                 autoFocus
                 margin="dense"

@@ -5,6 +5,7 @@ import { useUser } from '../UserContext';
 
 const ProtectedRoute = ({ children, requiredRole }) => {
   const { user } = useUser(); 
+  
   if (!user) {
     return <Navigate to="/login" />;
   }

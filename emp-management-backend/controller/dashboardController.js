@@ -1,9 +1,7 @@
-
-
 const Engagement = require('../models/Engagement');
-const Employee = require('../models/employee');
 const Feedback = require('../models/Feedback');
 const LearningMaterial = require('../models/LearningMaterial');
+const User = require('../models/user'); 
 
 
 const getTopEmployees = async (req, res) => {
@@ -56,18 +54,18 @@ const getDepartmentScores = async (req, res) => {
     const departmentScores = await Engagement.aggregate([
       {
         $lookup: {
-          from: 'employees', 
+          from: 'users', 
           localField: 'userId',
-          foreignField: 'user_id',
-          as: 'employeeDetails',
+          foreignField: '_id',
+          as: 'userDetails',
         },
       },
       {
-        $unwind: '$employeeDetails', 
+        $unwind: '$userDetails', 
       },
       {
         $group: {
-          _id: '$employeeDetails.department',
+          _id: '$userDetails.department', 
           averageScore: { $avg: '$quizScore' },
           totalScore: { $sum: '$quizScore' },  
           count: { $sum: 1 },                  
@@ -89,7 +87,6 @@ const getDepartmentScores = async (req, res) => {
     res.status(500).json({ message: 'Internal server error' });
   }
 };
-
 
 const getTopFeedbackLearningMaterial = async (req, res) => {
   try {

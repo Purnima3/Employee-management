@@ -1,48 +1,106 @@
 const User = require('../models/user'); 
-const bcrypt = require('bcrypt');// Adjust the path as needed
+const bcrypt = require('bcrypt');
 
-// Fetch all users
+const express = require('express');
+const nodemailer = require('nodemailer');
+const jwt = require('jsonwebtoken');
+
+const router = express.Router();
+
+const transporter = nodemailer.createTransport({
+  host: 'smtp.office365.com',
+  port: 587,
+  secure: false,
+  auth: {
+    user: process.env.EMAIL,
+    pass: process.env.EMAILPASS,
+  },
+  tls: {
+    rejectUnauthorized: true,
+  },
+});
+
+
+const sendOtp = async(req,res) =>{
+    const { email } = req.body;
+
+  try {
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    user.otp = otp;
+    user.otpExpiration = Date.now() + 10 * 60 * 1000; // 10 minutes expiration
+    await user.save();
+
+    const mailOptions = {
+      from: process.env.EMAIL,
+      to: email,
+      subject: 'Your OTP for Password Reset',
+      text: `Your OTP for password reset is: ${otp}`,
+    };
+
+    await transporter.sendMail(mailOptions);
+    return res.status(200).json({ message: 'OTP sent successfully!' });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: 'Error sending OTP' });
+  }
+}
+
+const varifyOtp = async(req,res) =>{
+    const { email, otp, newPassword } = req.body;
+
+  try {
+    const user = await User.findOne({ email });
+    if (!user || user.otp !== otp || user.otpExpiration < Date.now()) {
+      return res.status(400).json({ message: 'Invalid OTP or OTP expired' });
+    }
+
+    user.password = newPassword; 
+    user.otp = undefined; 
+    user.otpExpiration = undefined; 
+    await user.save();
+
+    return res.status(200).json({ message: 'Password updated successfully!' });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: 'Error resetting password' });
+  }
+}
+
 const fetchUsers = async (req, res) => {
     try {
-        const users = await User.find(); // Fetch all users from the database
-        res.status(200).json(users); // Send the users as a JSON response
+        const users = await User.find(); 
+        res.status(200).json(users); 
     } catch (error) {
         console.error('Error fetching users:', error);
         res.status(500).json({ message: 'Internal server error' });
     }
 };
 
-// Create a new user
 const createUser = async (req, res) => {
+    const { firstName, lastName, email, role, department, password } = req.body;
+
     try {
-        console.log(req.body)
-        const { firstName, lastName, email, password, role} = req.body;
-
-        // Ensure that all required fields are provided
-        if (!firstName || !lastName || !email || !password || !role) {
-            return res.status(400).json({ message: "All fields are required." });
-        }
+     // const hashedPassword = await bcrypt.hash(password, 10);
+      const newUser = new User({
+        firstName,
+        lastName,
+        email,
+        role,
+        department: role === 'employee' ? department : null, 
+        password: password,
+      });
   
-        const hashedPassword = await bcrypt.hash(password, 10);
-
-        const newUser = new User({
-            firstName,
-            lastName,
-            email,
-            password: hashedPassword,
-            role
-        });
-
-        // Await the save operation
-        const savedUser = await newUser.save(); // Make sure to await this operation
-
-        res.status(201).json({ message: "User created successfully", savedUser });
-    } catch (err) {
-        // Log the error for debugging
-        console.error("Error creating user:", err);
-
-        // Send a more descriptive error message to the client
-        res.status(400).json({ message: "Error creating user. Please try again." });
+      await newUser.save();
+  
+      res.status(201).json({ message: 'User created successfully', user: newUser });
+    } catch (error) {
+      console.error('Error creating user:', error);
+      res.status(500).json({ message: 'Error creating user' });
     }
 };
 const deleteUser = async (req, res) => {
@@ -66,7 +124,7 @@ const getUserDetails = async (req, res) => {
     const { userId } = req.params;
   
     try {
-      const user = await User.findById(userId).select('firstName lastName'); // Only select firstName and lastName
+      const user = await User.findById(userId).select('firstName lastName'); 
   
       if (!user) {
         return res.status(404).json({ message: 'User not found' });
@@ -83,5 +141,7 @@ module.exports = {
     fetchUsers,
     createUser,
     deleteUser,
-    getUserDetails
+    getUserDetails,
+    varifyOtp,
+    sendOtp,
 };

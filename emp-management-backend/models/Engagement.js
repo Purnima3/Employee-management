@@ -6,8 +6,8 @@ const engagementSchema = new mongoose.Schema({
   timeSpent: { type: Number, default: 0 },
   quizScore: { type: Number, default: 0 },
   moduleCompletion: [{ 
-    moduleId: { type: mongoose.Schema.Types.ObjectId, ref: "Module" }, // Reference to the module
-    completed: { type: Boolean, default: false }, // Completion status
+    moduleId: { type: mongoose.Schema.Types.ObjectId, ref: "Module" }, 
+    completed: { type: Boolean, default: false },
   }],
 });
 

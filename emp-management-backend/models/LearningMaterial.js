@@ -6,8 +6,8 @@ const learningMaterialSchema = new mongoose.Schema({
   duration: Number,
   contentUrl: String,
   department: { type: String, required: true },
-  modules: [{ type: mongoose.Schema.Types.ObjectId, ref: "Module" }], // Array of module IDs
-  quiz: { type: mongoose.Schema.Types.ObjectId, ref: "Quiz" }, // Reference to the quiz
+  modules: [{ type: mongoose.Schema.Types.ObjectId, ref: "Module" }], 
+  quiz: { type: mongoose.Schema.Types.ObjectId, ref: "Quiz" }, 
   createdAt: { type: Date, default: Date.now },
 });
 

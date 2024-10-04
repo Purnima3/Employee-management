@@ -1,7 +1,11 @@
 const express = require('express');
 const router = express.Router();
-const Quiz = require('../models/Quiz');
+const quizController = require('../controller/Quiz');
 
-router.post('/create-quiz',Quiz)
+const authMiddleware = require('../middleware/authMiddleware');
+
+router.post('/create-quiz', quizController.createQuiz,authMiddleware);
+router.get('/get-quizzes', quizController.getQuizzes,authMiddleware);
+router.get('/get-quiz/:learningMaterialId', quizController.getQuizByLearningMaterial,authMiddleware);
 
 module.exports = router;

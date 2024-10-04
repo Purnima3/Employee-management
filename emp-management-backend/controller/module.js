@@ -1,15 +1,24 @@
 const Module = require('../models/module');
 
-const createModule = async (req, res) => {
+exports.createModule = async (req, res) => {
   try {
-    const newModule = new Module(req.body); // req.body should contain title, contentUrl, and learningMaterialId
-    const savedModule = await newModule.save();
-    res.status(201).json(savedModule);
+    const { title, description, content, learningMaterialId } = req.body;
+    const newModule = new Module({ title, description, content, learningMaterialId });
+    await newModule.save();
+    res.status(201).json(newModule);
   } catch (error) {
-    res.status(400).json({ message: error.message });
+    res.status(500).json({ message: 'Error creating module', error });
   }
 };
 
-module.exports = {
-  createModule,
+exports.getModulesByLearningMaterial = async (req, res) => {
+  try {
+    const { learningMaterialId } = req.params;
+    const modules = await Module.find({ learningMaterialId });
+    res.status(200).json(modules);
+  } catch (error) {
+    res.status(500).json({ message: 'Error fetching modules', error });
+  }
 };
+
+

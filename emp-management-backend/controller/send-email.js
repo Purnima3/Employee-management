@@ -15,7 +15,10 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-// Send email controller
+// Temporary storage for OTPs
+let storedOtps = {};
+
+// Send email controller for new user
 const sendEmail = async (req, res) => {
   const { email, password } = req.body; // Extract email and password from request body
 
@@ -47,6 +50,7 @@ const sendOtpEmail = async (req, res) => {
 
   // Generate OTP
   const otp = generateOtp();
+  storedOtps[email] = otp; // Store OTP associated with email
 
   const mailOptions = {
     from: process.env.EMAIL,
@@ -59,11 +63,24 @@ const sendOtpEmail = async (req, res) => {
     const info = await transporter.sendMail(mailOptions);
     console.log('Email sent: ' + info.response);
     
-    return res.status(200).json({ message: 'OTP sent successfully!', otp }); // Respond to the client (you can omit the OTP from the response if not needed)
+    return res.status(200).json({ message: 'OTP sent successfully!' }); 
   } catch (error) {
     console.error('Error sending OTP email: ', error);
-    return res.status(500).json({ message: 'Error sending OTP email.' }); // Handle error response
+    return res.status(500).json({ message: 'Error sending OTP email.' });
   }
 };
 
-module.exports = { sendEmail ,sendOtpEmail};
+const verifyOtp = async (req, res) => {
+  const { email, otp, newPassword } = req.body;
+
+  if (storedOtps[email] && storedOtps[email] === otp) {
+
+    delete storedOtps[email]; 
+
+    return res.status(200).json({ message: 'Password updated successfully!' });
+  } else {
+    return res.status(400).json({ message: 'Invalid OTP.' });
+  }
+};
+
+module.exports = { sendEmail, sendOtpEmail, verifyOtp };

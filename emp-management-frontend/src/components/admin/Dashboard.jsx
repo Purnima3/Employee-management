@@ -11,18 +11,33 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Fetch all dashboard data
     const fetchData = async () => {
       try {
+        const token = localStorage.getItem('token');
         const [employeesResponse, departmentResponse, feedbackResponse] = await Promise.all([
-          axios.get('http://localhost:3001/dashboard/top-employees'),
-          axios.get('http://localhost:3001/dashboard/department-scores'),
-          axios.get('http://localhost:3001/dashboard/top-feedback-material'),
+          axios.get('http://localhost:3001/dashboard/top-employees', {
+            headers: {
+              Authorization: `Bearer ${token}`, 
+              'Content-Type': 'application/json',
+            },
+          }),
+          axios.get('http://localhost:3001/dashboard/department-scores', {
+            headers: {
+              Authorization: `Bearer ${token}`, 
+              'Content-Type': 'application/json',
+            },
+          }),
+          axios.get('http://localhost:3001/dashboard/top-feedback-material', {
+            headers: {
+              Authorization: `Bearer ${token}`, 
+              'Content-Type': 'application/json',
+            },
+          }),
         ]);
 
         setTopEmployees(employeesResponse.data);
         setDepartmentScores(departmentResponse.data);
-        setTopFeedbackMaterial(feedbackResponse.data[0]); // Assuming response is an array with a single object
+        setTopFeedbackMaterial(feedbackResponse.data[0]); 
       } catch (error) {
         console.error('Error fetching dashboard data:', error);
       } finally {
@@ -33,7 +48,6 @@ export default function Dashboard() {
     fetchData();
   }, []);
 
-  // Data for department scores bar chart with light and slightly darker blue shades
   const departmentChartData = {
     labels: departmentScores.map((dept) => dept.department),
     datasets: [
@@ -41,9 +55,9 @@ export default function Dashboard() {
         label: 'Average Score',
         data: departmentScores.map((dept) => dept.averageScore),
         backgroundColor: [
-          'rgba(173, 216, 230, 0.6)', // Light blue
-          'rgba(135, 206, 250, 0.6)', // Slightly darker blue
-          'rgba(100, 149, 237, 0.6)', // Cornflower blue
+          'rgba(173, 216, 230, 0.6)', 
+          'rgba(135, 206, 250, 0.6)', 
+          'rgba(100, 149, 237, 0.6)', 
         ],
         borderColor: [
           'rgba(173, 216, 230, 1)',
@@ -55,7 +69,7 @@ export default function Dashboard() {
     ],
   };
 
-  // Data for top employees chart (pie chart) with a range of blue shades
+  
   const topEmployeesData = {
     labels: topEmployees.map((emp) => `${emp.firstName} ${emp.lastName}`),
     datasets: [
