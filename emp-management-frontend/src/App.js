@@ -7,6 +7,7 @@ import Login from './components/login/Login';
 import Admin from './components/admin/Admin';
 import Employee from './components/employee/Employee';
 import ProtectedRoute from './routing/ProtectedRoute';
+import Module from './components/employee/Modules';
 
 function App() {
   return (
@@ -32,6 +33,14 @@ function App() {
             element={
               <ProtectedRoute requiredRole="employee">
                 <Employee />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/modules/:id"
+            element={
+              <ProtectedRoute requiredRole="employee">
+                <Module />
               </ProtectedRoute>
             }
           />

@@ -3,14 +3,14 @@
 
  async function createAdmin(){
     try{
-    const existAdmin = await User.findOne({email:'admin@test.com'});
+    const existAdmin = await User.findOne({email:'admin@test1.com'});
     if(existAdmin) {console.log('Admin already exists')}
     else{
         const newAdmin = User({
             firstName:"Admin",
             lastName:'mehta',
-            email:"admin@test.com",
-            password:await bcrypt.hash("admin",10),
+            email:"admin@test1.com",
+            password:"admin",
             role:'admin'
         });
         await newAdmin.save();

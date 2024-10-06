@@ -54,3 +54,11 @@ exports.getDistinctDepartments = async (req, res) => {
     }
   };
   
+exports.getMaterialForEmployee=async(req,res)=>{
+  try {
+    const learningMaterials = await LearningMaterial.find().populate('modules quiz');
+    res.json(learningMaterials);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch learning materials' });
+  }
+}
