@@ -1,4 +1,3 @@
-// Module.js
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useParams } from 'react-router-dom';
@@ -33,7 +32,7 @@ function Module() {
         
         // Initialize completion status and count
         const initialCompletionStatus = {};
-        response.data.modules.forEach(module => {
+        response.data.modules.forEach((module) => {
           initialCompletionStatus[module._id] = false; // Initialize all modules as not completed
         });
         setCompletionStatus(initialCompletionStatus);
@@ -46,8 +45,11 @@ function Module() {
   }, [id]);
 
   const handleModuleCompletion = async (moduleId, completed) => {
+    console.log( user._id)
     try {
+      console.log( user._id)
       await axios.put('http://localhost:3001/engagement/update', {
+       
         userId: user._id,
         learningMaterialId: id,
         moduleId,
@@ -58,10 +60,18 @@ function Module() {
       setCompletionStatus((prev) => ({ ...prev, [moduleId]: completed }));
 
       // Update the count of completed modules
-      setCompletedModulesCount((prev) => completed ? prev + 1 : prev - 1);
+      setCompletedModulesCount((prev) => (completed ? prev + 1 : prev - 1));
     } catch (error) {
       console.error('Error updating module completion:', error);
     }
+  };
+
+  const handleModuleClick = (moduleId, url) => {
+    // Mark the module as completed when clicked
+    handleModuleCompletion(moduleId, true);
+
+    // Open the module content in a new tab
+    window.open(url, '_blank', 'noopener,noreferrer');
   };
 
   const handleQuizSubmit = async () => {
@@ -100,11 +110,17 @@ function Module() {
                 checked={completionStatus[module._id] || false}
                 onChange={(e) => handleModuleCompletion(module._id, e.target.checked)}
               />
-              <ListItemText primary={
-                <a href={module.contentUrl} target="_blank" rel="noopener noreferrer">
-                  {module.title}
-                </a>
-              } />
+              <ListItemText
+                primary={
+                  <Typography
+                    component="a"
+                    onClick={() => handleModuleClick(module._id, module.contentUrl)}
+                    style={{ cursor: 'pointer', textDecoration: 'underline', color: 'blue' }}
+                  >
+                    {module.title}
+                  </Typography>
+                }
+              />
             </ListItem>
           ))
         ) : (

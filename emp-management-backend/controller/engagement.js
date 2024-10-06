@@ -1,4 +1,4 @@
-const engagement = require('../models/Engagement')
+const Engagement = require('../models/Engagement')
 
 exports.getEngagementByuserId = async(req,res) => {
     try {
@@ -14,9 +14,11 @@ exports.getEngagementByuserId = async(req,res) => {
 
 exports.updateEngagementData = async(req,res) =>{
   try {
+    console.log(req.body)
     const { userId, learningMaterialId, moduleId, quizScore, completed } = req.body;
     const engagement = await Engagement.findOne({ userId, learningMaterialId });
-
+      
+    console.log(engagement)
     if (engagement) {
       // Update engagement for the module completion
       if (moduleId) {
