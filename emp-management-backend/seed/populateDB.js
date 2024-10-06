@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 const { faker } = require('@faker-js/faker');
-const connectDB = require('../config/db');
+const connectDB = require('../config/db'); // Make sure the path to db config is correct
 const User = require("../models/user");
 const LearningMaterial = require("../models/LearningMaterial");
 const Module = require("../models/module");
@@ -54,7 +54,6 @@ const generateFakeModules = async (count) => {
   console.log(`${count} modules inserted`);
 };
 
-
 const generateFakeQuizzes = async (count) => {
   const materials = await LearningMaterial.find();
   const quizzes = [];
@@ -64,7 +63,7 @@ const generateFakeQuizzes = async (count) => {
       questions.push({
         question: faker.lorem.sentence(),
         options: [faker.lorem.word(), faker.lorem.word(), faker.lorem.word(), faker.lorem.word()],
-        answer: faker.helpers.arrayElement(["Option 1", "Option 2", "Option 3", "Option 4"]),
+        answer: faker.helpers.arrayElement([faker.lorem.word(), faker.lorem.word(), faker.lorem.word(), faker.lorem.word()]), 
       });
     }
     quizzes.push({
@@ -94,28 +93,37 @@ const generateFakeFeedback = async (count) => {
   console.log(`${count} feedbacks inserted`);
 };
 
-
 const generateFakeEngagements = async (count) => {
   const users = await User.find();
   const materials = await LearningMaterial.find();
+  const modules = await Module.find();
   const engagements = [];
 
   for (let i = 0; i < count; i++) {
+    const learningMaterial = faker.helpers.arrayElement(materials)._id;
+    const user = faker.helpers.arrayElement(users)._id;
+
+    // For each engagement, randomly select some modules to be marked as completed
+    const completedModules = modules
+      .filter((module) => module.learningMaterialId.equals(learningMaterial)) // Filter modules related to the same learning material
+      .map((module) => ({
+        moduleId: module._id,
+        completed: faker.datatype.boolean(),
+      }));
+
     engagements.push({
-      userId: faker.helpers.arrayElement(users)._id,
-      learningMaterialId: faker.helpers.arrayElement(materials)._id,
-      timeSpent: faker.number.int({ min: 0, max: 300 }), 
-      quizScore: faker.number.int({ min: 0, max: 100 }),
-      moduleCompletion: [{ 
-        moduleId: new mongoose.Types.ObjectId(), 
-        completed: faker.datatype.boolean(), 
+      userId: user,
+      learningMaterialCompletion: [{
+        learningMaterialId: learningMaterial,
+        completed: faker.datatype.boolean(),
       }],
+      moduleCompletion: completedModules, // Add the modules marked as completed
+      quizScore: faker.number.int({ min: 0, max: 100 }),
     });
   }
   await Engagement.insertMany(engagements);
   console.log(`${count} engagements inserted`);
 };
-
 
 // Function to populate the database
 const populateDB = async () => {

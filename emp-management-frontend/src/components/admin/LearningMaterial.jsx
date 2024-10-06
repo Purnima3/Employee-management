@@ -37,8 +37,6 @@ function LearningMaterial() {
   const [modules, setModules] = useState([]);
   const [departments, setDepartments] = useState(['Data Science', 'Data Engineering', 'Full Stack']);
   const [selectedDepartment, setSelectedDepartment] = useState('');
-
-
   const [newQuiz, setNewQuiz] = useState({
     title: '',
     questions: [
@@ -49,7 +47,6 @@ function LearningMaterial() {
       },
     ],
   });
-
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
 
@@ -57,9 +54,9 @@ function LearningMaterial() {
     const fetchLearningMaterials = async () => {
       try {
         const token = localStorage.getItem('token');
-        const response = await axios.get('http://localhost:3001/learning-materials/get-material',{
+        const response = await axios.get('http://localhost:3001/learning-materials/get-material', {
           headers: {
-            Authorization: `Bearer ${token}`, 
+            Authorization: `Bearer ${token}`,
             'Content-Type': 'application/json',
           },
         });
@@ -76,30 +73,40 @@ function LearningMaterial() {
   const handleAddLearningMaterial = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.post('http://localhost:3001/learning-materials/create-material', newLearningMaterial,{
-        headers: {
-          Authorization: `Bearer ${token}`, 
-          'Content-Type': 'application/json',
-        },
-      });
 
-      const learningMaterialId = response.data._id;
-
-      const modulePromises = modules.map((module) =>
-        axios.post('http://localhost:3001/modules/create-module', {
-          ...module,
-          learningMaterialId,
-        },{
+      // **Create Learning Material**
+      const response = await axios.post(
+        'http://localhost:3001/learning-materials/create-material',
+        newLearningMaterial,
+        {
           headers: {
-            Authorization: `Bearer ${token}`, 
+            Authorization: `Bearer ${token}`,
             'Content-Type': 'application/json',
           },
-        })
+        }
       );
+      const learningMaterialId = response.data._id;
 
+      // **Create Modules**
+      const modulePromises = modules.map((module) =>
+        axios.post(
+          'http://localhost:3001/modules/create-module',
+          {
+            ...module,
+            learningMaterialId, // Link module to the learning material
+          },
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              'Content-Type': 'application/json',
+            },
+          }
+        )
+      );
       const moduleResponses = await Promise.all(modulePromises);
       const createdModuleIds = moduleResponses.map((moduleResponse) => moduleResponse.data._id);
 
+      // **Create Quiz**
       const quizData = {
         title: newQuiz.title,
         questions: newQuiz.questions.map((q) => ({
@@ -107,34 +114,42 @@ function LearningMaterial() {
           options: q.options,
           answer: q.answer,
         })),
-        learningMaterialId,
+        learningMaterialId, // Link quiz to the learning material
       };
 
-      const quizResponse = await axios.post('http://localhost:3001/quizzes/create-quiz', quizData,{
-        headers: {
-          Authorization: `Bearer ${token}`, 
-          'Content-Type': 'application/json',
-        },
-      });
+      const quizResponse = await axios.post(
+        'http://localhost:3001/quizzes/create-quiz',
+        quizData,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
 
-    
-      await axios.put(`http://localhost:3001/learning-materials/update-material/${learningMaterialId}`, {
-        modules: createdModuleIds,
-        quiz: quizResponse.data._id,
-      },{
-        headers: {
-          Authorization: `Bearer ${token}`, 
-          'Content-Type': 'application/json',
+      // **Link Modules and Quiz to Learning Material**
+      await axios.put(
+        `http://localhost:3001/learning-materials/update-material/${learningMaterialId}`,
+        {
+          modules: createdModuleIds, // Link created modules
+          quiz: quizResponse.data._id, // Link created quiz
         },
-      });
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
 
-  
+      // **Update State and UI**
       setLearningMaterials([...learningMaterials, { ...response.data, modules: createdModuleIds, quiz: quizResponse.data._id }]);
       setOpenLearningMaterialDialog(false);
       toast.success('Learning material added successfully!');
       setNewLearningMaterial({ title: '', description: '', department: '' });
-      setModules([]);
-      setNewQuiz({ title: '', questions: [{ question: '', options: ['', '', '', ''], answer: '' }] });
+      setModules([]); // Reset modules
+      setNewQuiz({ title: '', questions: [{ question: '', options: ['', '', '', ''], answer: '' }] }); // Reset quiz
     } catch (error) {
       toast.error('Error adding learning material: ' + (error.response?.data?.message || error.message));
       console.error('Error adding learning material:', error);
@@ -146,9 +161,9 @@ function LearningMaterial() {
 
     try {
       const token = localStorage.getItem('token');
-      await axios.delete(`http://localhost:3001/learning-materials/delete-learning-material/${selectedMaterial._id}`,{
+      await axios.delete(`http://localhost:3001/learning-materials/delete-learning-material/${selectedMaterial._id}`, {
         headers: {
-          Authorization: `Bearer ${token}`, 
+          Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
       });
@@ -178,7 +193,7 @@ function LearningMaterial() {
     updatedQuestions[index][field] = value;
     setNewQuiz({ ...newQuiz, questions: updatedQuestions });
   };
-  
+
   const handleAddQuestion = () => {
     setNewQuiz({
       ...newQuiz,
@@ -192,6 +207,7 @@ function LearningMaterial() {
       ],
     });
   };
+
   const handleOptionChange = (questionIndex, optionIndex, value) => {
     const updatedQuestions = [...newQuiz.questions];
     updatedQuestions[questionIndex].options[optionIndex] = value;
@@ -242,23 +258,25 @@ function LearningMaterial() {
           </TableHead>
           <TableBody>
             {filteredLearningMaterials.length > 0 ? (
-              filteredLearningMaterials.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((material) => (
-                <TableRow key={material._id}>
-                  <TableCell>{material.title}</TableCell>
-                  <TableCell>{material.description}</TableCell>
-                  <TableCell>{material.department}</TableCell>
-                  <TableCell>
-                    <Button
-                      variant="contained"
-                      color="error"
-                      startIcon={<Delete />}
-                      onClick={() => openDeleteConfirmation(material)}
-                    >
-                      Delete
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ))
+              filteredLearningMaterials
+                .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                .map((material) => (
+                  <TableRow key={material._id}>
+                    <TableCell>{material.title}</TableCell>
+                    <TableCell>{material.description}</TableCell>
+                    <TableCell>{material.department}</TableCell>
+                    <TableCell>
+                      <Button
+                        variant="contained"
+                        color="error"
+                        startIcon={<Delete />}
+                        onClick={() => openDeleteConfirmation(material)}
+                      >
+                        Delete
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))
             ) : (
               <TableRow>
                 <TableCell colSpan={4} align="center">
@@ -277,18 +295,14 @@ function LearningMaterial() {
         count={filteredLearningMaterials.length}
         rowsPerPage={rowsPerPage}
         page={page}
-        onPageChange={(event, newPage) => setPage(newPage)}
-        onRowsPerPageChange={(event) => {
-          setRowsPerPage(parseInt(event.target.value, 10));
-          setPage(0);
-        }}
+        onPageChange={(e, newPage) => setPage(newPage)}
+        onRowsPerPageChange={(e) => setRowsPerPage(parseInt(e.target.value, 10))}
       />
 
-      {/* Add Learning Material Dialog */}
-      <Dialog open={openLearningMaterialDialog} onClose={() => setOpenLearningMaterialDialog(false)}>
-        <DialogTitle>Add Learning Material</DialogTitle>
+      {/* Dialog for Adding Learning Material */}
+      <Dialog open={openLearningMaterialDialog} onClose={() => setOpenLearningMaterialDialog(false)} maxWidth="sm" fullWidth>
+        <DialogTitle>Add New Learning Material</DialogTitle>
         <DialogContent>
-          {/* Learning Material Inputs */}
           <TextField
             label="Title"
             value={newLearningMaterial.title}
@@ -301,82 +315,129 @@ function LearningMaterial() {
             value={newLearningMaterial.description}
             onChange={(e) => setNewLearningMaterial({ ...newLearningMaterial, description: e.target.value })}
             fullWidth
+            multiline
+            rows={3}
             sx={{ marginBottom: '1rem' }}
           />
-
-          {/* Department Dropdown */}
           <Select
-            label="Department"
             value={newLearningMaterial.department}
             onChange={(e) => setNewLearningMaterial({ ...newLearningMaterial, department: e.target.value })}
             fullWidth
+            displayEmpty
             sx={{ marginBottom: '1rem' }}
           >
+            <MenuItem value="" disabled>
+              Select Department
+            </MenuItem>
             {departments.map((department, index) => (
               <MenuItem key={index} value={department}>
                 {department}
-              </MenuItem >   ))}</Select>
+              </MenuItem>
+            ))}
+          </Select>
 
-              {/* Quiz Inputs */}
-              <Typography variant="subtitle1">Quiz</Typography>
-<TextField
-  label="Quiz Title"
-  value={newQuiz.title}
-  onChange={(e) => setNewQuiz({ ...newQuiz, title: e.target.value })}
-  fullWidth
-  sx={{ marginBottom: '1rem' }}
-/>
-{newQuiz.questions.map((question, index) => (
-  <Box key={index} sx={{ marginBottom: '1rem' }}>
-    <TextField
-      label={`Question ${index + 1}`}
-      value={question.question}
-      onChange={(e) => handleQuizQuestionChange(index, 'question', e.target.value)}
-      fullWidth
-    />
-    {question.options.map((option, optIndex) => (
-      <TextField
-        key={optIndex}
-        label={`Option ${optIndex + 1}`}
-        value={option}
-        onChange={(e) => handleOptionChange(index, optIndex, e.target.value)}
-        fullWidth
-        sx={{ marginTop: '0.5rem' }}
-      />
-    ))}
-    <TextField
-      label="Answer"
-      value={question.answer}
-      onChange={(e) => handleQuizQuestionChange(index, 'answer', e.target.value)}
-      fullWidth
-      sx={{ marginTop: '0.5rem' }}
-    />
-  </Box>
-))}
-      <Button variant="contained" onClick={handleAddQuestion} sx={{ marginTop: '1rem' }}>
-  Add Question
-</Button>
-    </DialogContent>
-    <DialogActions>
-      <Button onClick={() => setOpenLearningMaterialDialog(false)}>Cancel</Button>
-      <Button onClick={handleAddLearningMaterial}>Add</Button>
-    </DialogActions>
-  </Dialog>
+          {/* Module Fields */}
+          <Typography variant="h6" gutterBottom>
+            Modules
+          </Typography>
+          {modules.map((module, index) => (
+            <Box key={index} display="flex" alignItems="center" gap={2} sx={{ marginBottom: '1rem' }}>
+              <TextField
+                label={`Module ${index + 1} Title`}
+                value={module.title}
+                onChange={(e) => {
+                  const newModules = [...modules];
+                  newModules[index].title = e.target.value;
+                  setModules(newModules);
+                }}
+                fullWidth
+              />
+              <TextField
+                label="Content"
+                value={module.content}
+                onChange={(e) => {
+                  const newModules = [...modules];
+                  newModules[index].content = e.target.value;
+                  setModules(newModules);
+                }}
+                fullWidth
+                multiline
+                rows={2}
+              />
+            </Box>
+          ))}
+          <Button variant="outlined" onClick={() => setModules([...modules, { title: '', content: '' }])}>
+            Add Module
+          </Button>
 
-  {/* Delete Confirmation Dialog */}
-  <Dialog open={openDeleteDialog} onClose={() => setOpenDeleteDialog(false)}>
-    <DialogTitle>Confirm Deletion</DialogTitle>
-    <DialogContent>
-      <Typography>Are you sure you want to delete this learning material?</Typography>
-    </DialogContent>
-    <DialogActions>
-      <Button onClick={() => setOpenDeleteDialog(false)}>Cancel</Button>
-      <Button onClick={handleDelete} color="error">
-        Delete
-      </Button>
-    </DialogActions>
-  </Dialog>
-</Box>
-); }
+          {/* Quiz Section */}
+          <Typography variant="h6" gutterBottom sx={{ marginTop: '1rem' }}>
+            Quiz
+          </Typography>
+          <TextField
+            label="Quiz Title"
+            value={newQuiz.title}
+            onChange={(e) => setNewQuiz({ ...newQuiz, title: e.target.value })}
+            fullWidth
+            sx={{ marginBottom: '1rem' }}
+          />
+          {newQuiz.questions.map((question, questionIndex) => (
+            <Box key={questionIndex} sx={{ marginBottom: '1rem' }}>
+              <TextField
+                label={`Question ${questionIndex + 1}`}
+                value={question.question}
+                onChange={(e) => handleQuizQuestionChange(questionIndex, 'question', e.target.value)}
+                fullWidth
+                sx={{ marginBottom: '1rem' }}
+              />
+              {question.options.map((option, optionIndex) => (
+                <TextField
+                  key={optionIndex}
+                  label={`Option ${optionIndex + 1}`}
+                  value={option}
+                  onChange={(e) => handleOptionChange(questionIndex, optionIndex, e.target.value)}
+                  fullWidth
+                  sx={{ marginBottom: '0.5rem' }}
+                />
+              ))}
+              <TextField
+                label="Answer"
+                value={question.answer}
+                onChange={(e) => handleQuizQuestionChange(questionIndex, 'answer', e.target.value)}
+                fullWidth
+                sx={{ marginBottom: '1rem' }}
+              />
+            </Box>
+          ))}
+          <Button variant="outlined" onClick={handleAddQuestion}>
+            Add Question
+          </Button>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setOpenLearningMaterialDialog(false)}>Cancel</Button>
+          <Button onClick={handleAddLearningMaterial} variant="contained">
+            Add
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Dialog for Delete Confirmation */}
+      <Dialog open={openDeleteDialog} onClose={() => setOpenDeleteDialog(false)} maxWidth="xs">
+        <DialogTitle>Confirm Deletion</DialogTitle>
+        <DialogContent>
+          <Typography>
+            Are you sure you want to delete the learning material "{selectedMaterial?.title}"?
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setOpenDeleteDialog(false)}>Cancel</Button>
+          <Button onClick={handleDelete} color="error" variant="contained">
+            Delete
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </Box>
+  );
+}
 
 export default LearningMaterial;

@@ -45,12 +45,12 @@ function Module() {
   }, [id]);
 
   const handleModuleCompletion = async (moduleId, completed) => {
-    console.log( user._id)
+    console.log( user.id)
     try {
       console.log( user._id)
       await axios.put('http://localhost:3001/engagement/update', {
        
-        userId: user._id,
+        userId: user.id,
         learningMaterialId: id,
         moduleId,
         completed,
@@ -84,7 +84,7 @@ function Module() {
 
     try {
       await axios.put('http://localhost:3001/engagement/update', {
-        userId: user._id,
+        userId: user.id,
         learningMaterialId: id,
         quizScore: score,
       });
