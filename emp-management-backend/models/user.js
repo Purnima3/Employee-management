@@ -12,9 +12,14 @@ const userSchema = new mongoose.Schema({
   otpExpiration: { type: Date },
 });
 
+// Check if password is already hashed before hashing
 userSchema.pre('save', async function(next) {
   if (this.isModified('password')) {
-    this.password = await bcrypt.hash(this.password, 10);
+    // Check if password is already hashed
+    const isHashed = /^\$2[ayb]\$.{56}$/.test(this.password);
+    if (!isHashed) {
+      this.password = await bcrypt.hash(this.password, 10);
+    }
   }
   next();
 });

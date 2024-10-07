@@ -1,7 +1,6 @@
-// Learning.js
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import { useUser } from '../../UserContext'; // Adjust the import path as necessary
+import { useUser } from '../../UserContext'; 
 import {
   Container,
   Typography,
@@ -22,8 +21,13 @@ function Learning() {
   useEffect(() => {
     // Fetch all learning materials on component load
     const fetchLearningMaterials = async () => {
+      const token = localStorage.getItem('token');
       try {
-        const response = await axios.get('http://localhost:3001/learning-materials/get-materials-emp');
+        const response = await axios.get('http://localhost:3001/learning-materials/get-materials-emp',
+          { headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        }});
         setLearningMaterials(response.data);
         console.log('Learning Materials:', response.data); // Log the materials
       } catch (error) {
@@ -44,8 +48,28 @@ function Learning() {
     material.title.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const handleSelectMaterial = (materialId) => {
-    navigate(`/modules/${materialId}`); // Navigate to the module page with the selected material ID
+  const handleSelectMaterial = async (materialId) => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.post('http://localhost:3001/engagement/this/create-engagement',
+       {
+        learningMaterialId: materialId,
+        userId: user.id, 
+      }, { headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      }});
+
+      if (response.status === 201) {
+        console.log('Engagement created successfully:', response.data);
+       
+        navigate(`/modules/${materialId}`);
+      } else {
+        console.error('Failed to create engagement:', response.data.message);
+      }
+    } catch (error) {
+      console.error('Error creating engagement:', error);
+    }
   };
 
   return (

@@ -22,6 +22,7 @@ import {
 import { Delete } from '@mui/icons-material';
 import axios from 'axios';
 import { ToastContainer, toast } from 'react-toastify';
+import { useUser } from '../../UserContext'; 
 
 function LearningMaterial() {
   const [newLearningMaterial, setNewLearningMaterial] = useState({
@@ -29,6 +30,7 @@ function LearningMaterial() {
     description: '',
     department: '',
   });
+  const { user } = useUser(); // Access user from context
   const [learningMaterials, setLearningMaterials] = useState([]);
   const [openLearningMaterialDialog, setOpenLearningMaterialDialog] = useState(false);
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
@@ -73,7 +75,7 @@ function LearningMaterial() {
   const handleAddLearningMaterial = async () => {
     try {
       const token = localStorage.getItem('token');
-
+  
       // **Create Learning Material**
       const response = await axios.post(
         'http://localhost:3001/learning-materials/create-material',
@@ -86,7 +88,7 @@ function LearningMaterial() {
         }
       );
       const learningMaterialId = response.data._id;
-
+  
       // **Create Modules**
       const modulePromises = modules.map((module) =>
         axios.post(
@@ -105,7 +107,7 @@ function LearningMaterial() {
       );
       const moduleResponses = await Promise.all(modulePromises);
       const createdModuleIds = moduleResponses.map((moduleResponse) => moduleResponse.data._id);
-
+  
       // **Create Quiz**
       const quizData = {
         title: newQuiz.title,
@@ -116,7 +118,7 @@ function LearningMaterial() {
         })),
         learningMaterialId, // Link quiz to the learning material
       };
-
+  
       const quizResponse = await axios.post(
         'http://localhost:3001/quizzes/create-quiz',
         quizData,
@@ -127,7 +129,7 @@ function LearningMaterial() {
           },
         }
       );
-
+  
       // **Link Modules and Quiz to Learning Material**
       await axios.put(
         `http://localhost:3001/learning-materials/update-material/${learningMaterialId}`,
@@ -142,11 +144,12 @@ function LearningMaterial() {
           },
         }
       );
-
+  
+  
       // **Update State and UI**
       setLearningMaterials([...learningMaterials, { ...response.data, modules: createdModuleIds, quiz: quizResponse.data._id }]);
       setOpenLearningMaterialDialog(false);
-      toast.success('Learning material added successfully!');
+      toast.success('Learning material and engagement entry added successfully!');
       setNewLearningMaterial({ title: '', description: '', department: '' });
       setModules([]); // Reset modules
       setNewQuiz({ title: '', questions: [{ question: '', options: ['', '', '', ''], answer: '' }] }); // Reset quiz

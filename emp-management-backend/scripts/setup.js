@@ -6,11 +6,12 @@
     const existAdmin = await User.findOne({email:'admin@test1.com'});
     if(existAdmin) {console.log('Admin already exists')}
     else{
+        const hashedPassword = await bcrypt.hash('admin', 10);
         const newAdmin = User({
             firstName:"Admin",
             lastName:'mehta',
             email:"admin@test1.com",
-            password:"admin",
+            password:hashedPassword,
             role:'admin'
         });
         await newAdmin.save();

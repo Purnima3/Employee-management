@@ -22,55 +22,79 @@ function Module() {
   const [quizAnswers, setQuizAnswers] = useState([]);
   const [completionStatus, setCompletionStatus] = useState({}); // Track module completion
   const [completedModulesCount, setCompletedModulesCount] = useState(0); // Track completed modules
+  const [quizScore, setQuizScore] = useState(null); // Track user's quiz score
+  const [isQuizCompleted, setIsQuizCompleted] = useState(false); // Track if quiz is completed
 
   useEffect(() => {
     const fetchModulesAndQuiz = async () => {
       try {
-        const response = await axios.get(`http://localhost:3001/modules/get-modules-emp/${id}`);
-        setModules(response.data.modules);
-        setQuiz(response.data.quiz);
-        
-        // Initialize completion status and count
-        const initialCompletionStatus = {};
-        response.data.modules.forEach((module) => {
-          initialCompletionStatus[module._id] = false; // Initialize all modules as not completed
+        const token = localStorage.getItem('token');
+        const response = await axios.get(`http://localhost:3001/modules/get-modules-emp/${id}?userId=${user.id}`,{
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          }
         });
-        setCompletionStatus(initialCompletionStatus);
+        const { modules, quiz, engagement } = response.data;
+
+        setModules(modules);
+        setQuiz(quiz);
+
+        // Initialize completion status based on engagement data
+        const initialCompletionStatus = {};
+        let completedCount = 0;
+        modules.forEach((module) => {
+          const isCompleted = engagement?.completedModules?.includes(module._id) || false;
+          initialCompletionStatus[module._id] = isCompleted;
+          if (isCompleted) completedCount += 1;
+        });
+
+        // Retrieve saved state from local storage
+        const savedCompletionStatus = JSON.parse(localStorage.getItem('completionStatus')) || {};
+        const savedQuizScore = localStorage.getItem('quizScore');
+        const savedIsQuizCompleted = localStorage.getItem('isQuizCompleted') === 'true';
+
+        setCompletionStatus({ ...initialCompletionStatus, ...savedCompletionStatus });
+        setCompletedModulesCount(completedCount);
+        setQuizScore(savedQuizScore ? parseInt(savedQuizScore, 10) : null);
+        setIsQuizCompleted(savedIsQuizCompleted);
+
       } catch (error) {
         console.error('Error fetching modules and quiz:', error);
       }
     };
 
     fetchModulesAndQuiz();
-  }, [id]);
+  }, [id, user.id]);
 
   const handleModuleCompletion = async (moduleId, completed) => {
-    console.log( user.id)
     try {
-      console.log( user._id)
+      const token = localStorage.getItem('token');
       await axios.put('http://localhost:3001/engagement/update', {
-       
         userId: user.id,
         learningMaterialId: id,
         moduleId,
         completed,
+      },{
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        }
       });
 
-      // Update completion status
-      setCompletionStatus((prev) => ({ ...prev, [moduleId]: completed }));
-
-      // Update the count of completed modules
+      const updatedCompletionStatus = { ...completionStatus, [moduleId]: completed };
+      setCompletionStatus(updatedCompletionStatus);
       setCompletedModulesCount((prev) => (completed ? prev + 1 : prev - 1));
+      
+      // Save completion status to local storage
+      localStorage.setItem('completionStatus', JSON.stringify(updatedCompletionStatus));
     } catch (error) {
       console.error('Error updating module completion:', error);
     }
   };
 
   const handleModuleClick = (moduleId, url) => {
-    // Mark the module as completed when clicked
     handleModuleCompletion(moduleId, true);
-
-    // Open the module content in a new tab
     window.open(url, '_blank', 'noopener,noreferrer');
   };
 
@@ -83,11 +107,24 @@ function Module() {
     });
 
     try {
+      const token = localStorage.getItem('token');
       await axios.put('http://localhost:3001/engagement/update', {
         userId: user.id,
         learningMaterialId: id,
         quizScore: score,
+      },{
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        }
       });
+
+      // Save quiz score and completion status to local storage
+      localStorage.setItem('quizScore', score);
+      localStorage.setItem('isQuizCompleted', true);
+      
+      setQuizScore(score);
+      setIsQuizCompleted(true);
       alert(`Quiz submitted! Your score is ${score}`);
     } catch (error) {
       console.error('Error submitting quiz:', error);
@@ -131,29 +168,35 @@ function Module() {
       {quiz && (
         <Box mt={3}>
           <Typography variant="h6">Quiz: {quiz.title}</Typography>
-          {quiz.questions.map((question, index) => (
-            <Box key={index} mb={2}>
-              <Typography variant="body1">{question.question}</Typography>
-              {question.options.map((option, optionIndex) => (
-                <div key={optionIndex}>
-                  <input
-                    type="radio"
-                    name={`question-${index}`}
-                    value={option}
-                    onChange={() => setQuizAnswers((prev) => {
-                      const updatedAnswers = [...prev];
-                      updatedAnswers[index] = option;
-                      return updatedAnswers;
-                    })}
-                  />
-                  {option}
-                </div>
+          {isQuizCompleted ? (
+            <Typography>Your quiz score: {quizScore}</Typography>
+          ) : (
+            <>
+              {quiz.questions.map((question, index) => (
+                <Box key={index} mb={2}>
+                  <Typography variant="body1">{question.question}</Typography>
+                  {question.options.map((option, optionIndex) => (
+                    <div key={optionIndex}>
+                      <input
+                        type="radio"
+                        name={`question-${index}`}
+                        value={option}
+                        onChange={() => setQuizAnswers((prev) => {
+                          const updatedAnswers = [...prev];
+                          updatedAnswers[index] = option;
+                          return updatedAnswers;
+                        })}
+                      />
+                      {option}
+                    </div>
+                  ))}
+                </Box>
               ))}
-            </Box>
-          ))}
-          <Button variant="contained" color="primary" onClick={handleQuizSubmit}>
-            Submit Quiz
-          </Button>
+              <Button variant="contained" color="primary" onClick={handleQuizSubmit}>
+                Submit Quiz
+              </Button>
+            </>
+          )}
         </Box>
       )}
     </Container>
