@@ -9,6 +9,7 @@ import {
   CardActionArea,
   Grid,
   TextField,
+  Box,
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 
@@ -62,7 +63,6 @@ function Learning() {
 
       if (response.status === 201) {
         console.log('Engagement created successfully:', response.data);
-       
         navigate(`/modules/${materialId}`);
       } else {
         console.error('Failed to create engagement:', response.data.message);
@@ -74,7 +74,7 @@ function Learning() {
 
   return (
     <Container>
-      <Typography variant="h4" gutterBottom>
+      <Typography variant="h4" gutterBottom align="center" sx={{ marginBottom: 4 }}>
         Learning Materials
       </Typography>
 
@@ -86,16 +86,31 @@ function Learning() {
         margin="normal"
         value={searchTerm}
         onChange={handleSearchChange} // Update search term on input change
+        sx={{
+          backgroundColor: 'white',
+          borderRadius: '4px',
+        }}
       />
 
-      <Grid container spacing={2}>
+      <Grid container spacing={4}>
         {filteredMaterials.map((material) => (
           <Grid item xs={12} sm={6} md={4} key={material._id}>
-            <Card>
+            <Card
+              elevation={4} // Add elevation for shadow
+              sx={{
+                transition: 'transform 0.2s, box-shadow 0.2s',
+                '&:hover': {
+                  transform: 'scale(1.05)', // Scale effect on hover
+                  boxShadow: 8, // Increased shadow on hover
+                },
+              }}
+            >
               <CardActionArea onClick={() => handleSelectMaterial(material._id)}>
                 <CardContent>
-                  <Typography variant="h5">{material.title}</Typography>
-                  <Typography variant="body2" color="textSecondary">
+                  <Typography variant="h5" sx={{ color: 'primary.main' }}>
+                    {material.title}
+                  </Typography>
+                  <Typography variant="body2" color="textSecondary" sx={{ marginTop: 1 }}>
                     {material.description}
                   </Typography>
                 </CardContent>
