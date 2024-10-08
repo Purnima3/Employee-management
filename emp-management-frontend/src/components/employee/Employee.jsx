@@ -12,21 +12,17 @@ import {
   Toolbar,
 } from '@mui/material';
 import { Home, Feedback as FeedbackIcon, People, LocalLibrary } from '@mui/icons-material';
-import axios from 'axios';
 import { ToastContainer } from 'react-toastify';
 import Feedback from './Feedback';
 import Learning from './Learning';
-import Discussio from './Discussion';
 import Discussion from './Discussion';
-
 
 const drawerWidth = 240;
 
-
 function Employee() {
-   // Initialize activeSection from localStorage or default to 'dashboard'
-   const [activeSection, setActiveSection] = useState(() => {
-    return localStorage.getItem('activeSection') || 'dashboard';
+  // Initialize activeSection from localStorage or default to 'learnings'
+  const [activeSection, setActiveSection] = useState(() => {
+    return localStorage.getItem('activeSection') || 'learnings'; // Default to 'learnings'
   });
 
   // Store activeSection in localStorage whenever it changes
@@ -66,15 +62,15 @@ function Employee() {
         <List>
           <ListItem button onClick={() => setActiveSection('learnings')}>
             <ListItemIcon><LocalLibrary/></ListItemIcon>
-            <ListItemText primary="learnings" />
+            <ListItemText primary="Learnings" />
           </ListItem>
           <ListItem button onClick={() => setActiveSection('feedback')}>
             <ListItemIcon><FeedbackIcon/></ListItemIcon>
-            <ListItemText primary="feedback" />
+            <ListItemText primary="Feedback" />
           </ListItem>
           <ListItem button onClick={() => setActiveSection('discussion')}>
             <ListItemIcon><LocalLibrary/></ListItemIcon>
-            <ListItemText primary="discussion" />
+            <ListItemText primary="Discussion" />
           </ListItem>
         </List>
       </Drawer>

@@ -24,20 +24,23 @@ function Learning() {
     const fetchLearningMaterials = async () => {
       const token = localStorage.getItem('token');
       try {
-        const response = await axios.get('http://localhost:3001/learning-materials/get-materials-emp',
-          { headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        }});
-        setLearningMaterials(response.data);
-        console.log('Learning Materials:', response.data); // Log the materials
+        const response = await axios.get('http://localhost:3001/learning-materials/get-materials-emp', {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          }
+        });
+        // Filter materials based on user department
+        const filteredMaterials = response.data.filter(material => material.department === user.department);
+        setLearningMaterials(filteredMaterials);
+        console.log('Learning Materials:', filteredMaterials); // Log the filtered materials
       } catch (error) {
         console.error('Error fetching learning materials:', error);
       }
     };
 
     fetchLearningMaterials();
-  }, []);
+  }, [user.department]); // Add user.department as a dependency
 
   // Function to handle search input changes
   const handleSearchChange = (event) => {
@@ -53,13 +56,15 @@ function Learning() {
     try {
       const token = localStorage.getItem('token');
       const response = await axios.post('http://localhost:3001/engagement/this/create-engagement',
-       {
-        learningMaterialId: materialId,
-        userId: user.id, 
-      }, { headers: {
-        Authorization: `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      }});
+        {
+          learningMaterialId: materialId,
+          userId: user.id, 
+        }, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          }
+        });
 
       if (response.status === 201) {
         console.log('Engagement created successfully:', response.data);
