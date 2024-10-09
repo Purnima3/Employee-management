@@ -17,7 +17,7 @@ import axios from 'axios';
 import { useUser } from '../../UserContext';
 
 const Discussion = () => {
-  const { user } = useUser(); // Access user from context
+  const { user } = useUser(); 
   const [learningMaterials, setLearningMaterials] = useState([]);
   const [selectedMaterial, setSelectedMaterial] = useState('');
   const [discussion, setDiscussion] = useState('');

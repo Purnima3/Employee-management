@@ -12,16 +12,17 @@ import {
   Toolbar,
 } from '@mui/material';
 import { Home, Feedback as FeedbackIcon, People, LocalLibrary } from '@mui/icons-material';
-import axios from 'axios';
 import { ToastContainer } from 'react-toastify';
 import UserManagement from './UserManagement';
 import LearningMaterialManagement from './LearningMaterial';
 import FeedbackManagement from './FeedbackManagement';
 import Dashboard from './Dashboard';
+import { useUser } from '../../UserContext'; 
 
 const drawerWidth = 240;
 
 function Admin() {
+  const { user } = useUser();
   // Initialize activeSection from localStorage or default to 'dashboard'
   const [activeSection, setActiveSection] = useState(() => {
     return localStorage.getItem('activeSection') || 'dashboard';
@@ -39,13 +40,17 @@ function Admin() {
     window.location.href = '/login';
   };
 
+  
   return (
     <Box sx={{ display: 'flex' }}>
       <ToastContainer />
       <AppBar position="fixed" sx={{ zIndex: (theme) => theme.zIndex.drawer + 1 }}>
         <Toolbar sx={{ display: 'flex', justifyContent: 'space-between' }}>
           <Typography variant="h6">Admin Dashboard</Typography>
-          <Button variant="contained" color="secondary" onClick={handleLogout}>Logout</Button>
+          {/* Profile Info */}
+          <Typography variant="body1" color="inherit">
+            {user.email} ({user.role})
+          </Typography>
         </Toolbar>
       </AppBar>
 
@@ -77,6 +82,17 @@ function Admin() {
           <ListItem button onClick={() => setActiveSection('feedback')}>
             <ListItemIcon><FeedbackIcon/></ListItemIcon>
             <ListItemText primary="Feedback" />
+          </ListItem>
+          {/* Logout Button in Drawer */}
+          <ListItem>
+            <Button 
+              variant="contained" 
+              color="secondary" 
+              fullWidth 
+              onClick={handleLogout}
+            >
+              Logout
+            </Button>
           </ListItem>
         </List>
       </Drawer>

@@ -16,10 +16,12 @@ import { ToastContainer } from 'react-toastify';
 import Feedback from './Feedback';
 import Learning from './Learning';
 import Discussion from './Discussion';
+import { useUser } from '../../UserContext'; 
 
 const drawerWidth = 240;
 
 function Employee() {
+  const { user } = useUser(); // Access user from context
   // Initialize activeSection from localStorage or default to 'learnings'
   const [activeSection, setActiveSection] = useState(() => {
     return localStorage.getItem('activeSection') || 'learnings'; // Default to 'learnings'
@@ -37,13 +39,19 @@ function Employee() {
     window.location.href = '/login';
   };
 
+  
+
   return (
     <Box sx={{ display: 'flex' }}>
       <ToastContainer />
       <AppBar position="fixed" sx={{ zIndex: (theme) => theme.zIndex.drawer + 1 }}>
         <Toolbar sx={{ display: 'flex', justifyContent: 'space-between' }}>
-          <Typography variant="h6">Employee</Typography>
-          <Button variant="contained" color="secondary" onClick={handleLogout}>Logout</Button>
+          <Typography variant="h6">Employee Dashboard</Typography>
+          {/* Profile Info */}
+          <Typography variant="body1" color="inherit">
+            {user.email
+            } ({user.department})
+          </Typography>
         </Toolbar>
       </AppBar>
 
@@ -61,23 +69,34 @@ function Employee() {
         <Toolbar />
         <List>
           <ListItem button onClick={() => setActiveSection('learnings')}>
-            <ListItemIcon><LocalLibrary/></ListItemIcon>
+            <ListItemIcon><LocalLibrary /></ListItemIcon>
             <ListItemText primary="Learnings" />
           </ListItem>
           <ListItem button onClick={() => setActiveSection('feedback')}>
-            <ListItemIcon><FeedbackIcon/></ListItemIcon>
+            <ListItemIcon><FeedbackIcon /></ListItemIcon>
             <ListItemText primary="Feedback" />
           </ListItem>
           <ListItem button onClick={() => setActiveSection('discussion')}>
-            <ListItemIcon><LocalLibrary/></ListItemIcon>
+            <ListItemIcon><LocalLibrary /></ListItemIcon>
             <ListItemText primary="Discussion" />
+          </ListItem>
+          {/* Logout Button in Drawer */}
+          <ListItem>
+            <Button 
+              variant="contained" 
+              color="secondary" 
+              fullWidth 
+              onClick={handleLogout}
+            >
+              Logout
+            </Button>
           </ListItem>
         </List>
       </Drawer>
 
       <Box component="main" sx={{ flexGrow: 1, bgcolor: 'background.default', p: 14, marginTop: '44px' }}>
-        {activeSection === 'learnings' && <Learning/>}
-        {activeSection === 'discussion' && <Discussion/>}
+        {activeSection === 'learnings' && <Learning />}
+        {activeSection === 'discussion' && <Discussion />}
         {activeSection === 'feedback' && <Feedback />}
       </Box>
     </Box>

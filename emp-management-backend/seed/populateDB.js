@@ -7,6 +7,7 @@ const Module = require("../models/module");
 const Quiz = require("../models/Quiz");
 const Feedback = require("../models/Feedback");
 const Engagement = require("../models/Engagement");
+const Discussion = require("../models/Discussion"); // Import Discussion model
 
 // Function to connect to the database
 const connectToDatabase = async () => {
@@ -24,7 +25,7 @@ const generateUsers = (n) => {
   for (let i = 0; i < n; i++) {
     users.push({
       _id: new mongoose.Types.ObjectId(),
-      firstName: faker.person.firstName(), // Use faker.person instead of faker.name
+      firstName: faker.person.firstName(),
       lastName: faker.person.lastName(),
       email: faker.internet.email(),
       role: faker.helpers.arrayElement(['admin', 'employee']),
@@ -43,7 +44,7 @@ const generateLearningMaterials = (n) => {
       _id: new mongoose.Types.ObjectId(),
       title: faker.lorem.sentence(),
       description: faker.lorem.paragraph(),
-      duration: faker.number.int({ min: 30, max: 180 }), // Updated datatype to number.int
+      duration: faker.number.int({ min: 30, max: 180 }),
       contentUrl: faker.internet.url(),
       department: faker.helpers.arrayElement(["Data Science", "Data Engineering", "Full Stack"]),
       createdAt: faker.date.recent(),
@@ -57,14 +58,14 @@ const generateEngagements = (users, learningMaterials, n) => {
   const engagements = [];
   for (let i = 0; i < n; i++) {
     engagements.push({
-      userId: faker.helpers.arrayElement(users)._id, // Use faker.helpers.arrayElement instead of faker.random
+      userId: faker.helpers.arrayElement(users)._id,
       learningMaterialCompletion: [
         {
           learningMaterialId: faker.helpers.arrayElement(learningMaterials)._id,
           completed: faker.datatype.boolean(),
         },
       ],
-      quizScore: faker.number.int({ min: 0, max: 100 }), // Updated datatype to number.int
+      quizScore: faker.number.int({ min: 0, max: 100 }),
     });
   }
   return engagements;
@@ -78,7 +79,7 @@ const generateFeedbacks = (users, learningMaterials, n) => {
       userId: faker.helpers.arrayElement(users)._id,
       learningMaterialId: faker.helpers.arrayElement(learningMaterials)._id,
       feedback: faker.lorem.sentence(),
-      rating: faker.number.int({ min: 1, max: 5 }), // Updated datatype to number.int
+      rating: faker.number.int({ min: 1, max: 5 }),
       createdAt: faker.date.recent(),
     });
   }
@@ -105,7 +106,7 @@ const generateQuizzes = (learningMaterials, n) => {
   const quizzes = [];
   for (let i = 0; i < n; i++) {
     const questions = [];
-    for (let j = 0; j < 5; j++) { // Assuming 5 questions per quiz
+    for (let j = 0; j < 5; j++) {
       questions.push({
         question: faker.lorem.sentence(),
         options: [faker.lorem.word(), faker.lorem.word(), faker.lorem.word(), faker.lorem.word()],
@@ -122,6 +123,20 @@ const generateQuizzes = (learningMaterials, n) => {
   return quizzes;
 };
 
+// Function to generate discussion data
+const generateDiscussions = (users, learningMaterials, n) => {
+  const discussions = [];
+  for (let i = 0; i < n; i++) {
+    discussions.push({
+      userId: faker.helpers.arrayElement(users)._id,
+      learningMaterialId: faker.helpers.arrayElement(learningMaterials)._id,
+      content: faker.lorem.paragraph(),
+      createdAt: faker.date.recent(),
+    });
+  }
+  return discussions;
+};
+
 // Main function to generate and store data
 const seedDatabase = async () => {
   await connectToDatabase(); // Establish database connection
@@ -135,6 +150,7 @@ const seedDatabase = async () => {
   const quizzes = generateQuizzes(learningMaterials, numEntries);
   const engagements = generateEngagements(users, learningMaterials, numEntries);
   const feedbacks = generateFeedbacks(users, learningMaterials, numEntries);
+  const discussions = generateDiscussions(users, learningMaterials, numEntries); // Generate discussions
 
   try {
     // Store data in collections
@@ -144,6 +160,7 @@ const seedDatabase = async () => {
     await Quiz.insertMany(quizzes);
     await Engagement.insertMany(engagements);
     await Feedback.insertMany(feedbacks);
+    await Discussion.insertMany(discussions); // Store discussions
 
     console.log("Data has been successfully stored in the database!");
   } catch (error) {
@@ -152,6 +169,5 @@ const seedDatabase = async () => {
     mongoose.disconnect(); 
   }
 };
-
 
 seedDatabase();
