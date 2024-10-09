@@ -12,6 +12,6 @@ router.get('/get-material', learningMaterialController.getLearningMaterials,auth
 router.put('/update-material/:id', learningMaterialController.updateLearningMaterial,authMiddleware);
 router.delete('/delete-learning-material/:id', learningMaterialController.deleteLearningMaterial,authMiddleware);
 router.get('/departments', learningMaterialController.getDistinctDepartments,authMiddleware);
-
+router.get('/get/:department',learningMaterialController.getMaterialsByDepartment, authMiddleware);
 router.get('/get-materials-emp',learningMaterialController.getMaterialForEmployee,authMiddleware)
 module.exports = router;

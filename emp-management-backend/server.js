@@ -14,6 +14,8 @@ const quizRoutes = require('./routes/quiz')
 const learningMaterial = require('./routes/learningMaterial')
 const moduleRoute = require('./routes/module')
 
+const disscussRoute = require('./routes/discussion')
+
 require('dotenv').config();
 
 const app = express();
@@ -38,6 +40,7 @@ app.use('/dashboard',dashboardRoutes)
 app.use('/learning-materials', learningMaterial);
 app.use('/modules', moduleRoute);
 app.use('/quizzes', quizRoutes);
+app.use('/discussions', disscussRoute);
 
 app.get("/", (req, res) => {
     res.send("Hello World");

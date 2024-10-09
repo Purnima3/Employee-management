@@ -62,3 +62,14 @@ exports.getMaterialForEmployee=async(req,res)=>{
     res.status(500).json({ error: 'Failed to fetch learning materials' });
   }
 }
+
+exports.getMaterialsByDepartment = async (req, res) => {
+  try {
+    const { department } = req.params;
+    const materials = await LearningMaterial.find({ department }); // Adjust query as needed
+    res.json(materials);
+  } catch (error) {
+    console.error('Error fetching materials:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+};
