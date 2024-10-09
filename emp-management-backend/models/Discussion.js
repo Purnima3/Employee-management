@@ -15,13 +15,7 @@ const discussionSchema = new mongoose.Schema({
     type: String, 
     required: true 
   },  // Content of the discussion
-  replies: [
-    { 
-      userId: { type: mongoose.Schema.Types.ObjectId, ref: "user", required: true }, 
-      content: { type: String, required: true }, 
-      createdAt: { type: Date, default: Date.now }
-    }
-  ],  // List of replies within a discussion
+  // List of replies within a discussion
   createdAt: { 
     type: Date, 
     default: Date.now 

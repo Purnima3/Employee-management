@@ -8,10 +8,10 @@ import {
   MenuItem,
   TextField,
   Button,
-  List,
-  ListItem,
-  ListItemText,
   CircularProgress,
+  Grid,
+  Box,
+  Paper,
 } from '@mui/material';
 import axios from 'axios';
 import { useUser } from '../../UserContext';
@@ -63,6 +63,7 @@ const Discussion = () => {
       await axios.post(
         'http://localhost:3001/discussions/create',
         {
+          userId: user.id,
           materialId: selectedMaterial,
           discussion,
         },
@@ -81,12 +82,14 @@ const Discussion = () => {
 
   return (
     <Container>
-      <Typography variant="h4" gutterBottom>
+      <Typography variant="h4" gutterBottom align="center">
         Discussion Section
       </Typography>
-      <FormControl fullWidth margin="normal">
+
+      {/* Learning Material Selector */}
+      <FormControl fullWidth margin="normal" variant="outlined">
         <InputLabel>Learning Material</InputLabel>
-        <Select value={selectedMaterial} onChange={handleMaterialChange}>
+        <Select value={selectedMaterial} onChange={handleMaterialChange} label="Learning Material">
           {learningMaterials.map((material) => (
             <MenuItem key={material._id} value={material._id}>
               {material.title}
@@ -94,26 +97,49 @@ const Discussion = () => {
           ))}
         </Select>
       </FormControl>
+
+      {/* Discussion Form */}
       <form onSubmit={handleDiscussionSubmit}>
         <TextField
           fullWidth
-          label="Your Discussion"
+          label="Share your thoughts..."
           variant="outlined"
           value={discussion}
           onChange={(e) => setDiscussion(e.target.value)}
           margin="normal"
+          multiline
+          rows={3}
         />
-        <Button type="submit" variant="contained" color="primary">
-          Submit Discussion
+        <Button type="submit" variant="contained" color="primary" fullWidth>
+          Post Discussion
         </Button>
       </form>
-      <List>
+
+      {/* Discussions Section */}
+      <Grid container spacing={2} style={{ marginTop: '20px' }}>
         {discussions.map((item) => (
-          <ListItem key={item._id}>
-            <ListItemText primary={item.discussion} secondary={`Posted by ${item.userId.firstName} ${item.userId.lastName}`} />
-          </ListItem>
+          <Grid item xs={12} key={item._id}>
+            <Box
+              component={Paper}
+              elevation={3}
+              padding={2}
+              maxWidth="75%"
+              marginLeft={user.id === item.userId ? 'auto' : 0} // Right-align user's posts
+              marginRight={user.id === item.userId ? 0 : 'auto'} // Left-align others' posts
+              bgcolor={user.id === item.userId ? 'rgba(63, 81, 181, 0.1)' : 'rgba(200, 200, 200, 0.2)'} // Lighter colors
+              color={user.id === item.userId ? 'rgba(63, 81, 181, 0.8)' : 'text.primary'}
+              borderRadius={4}
+            >
+              <Typography variant="body1" gutterBottom>
+                {item.content}
+              </Typography>
+              <Typography variant="caption" color="text.secondary">
+                {user.id === item.userId ? 'You' : `Posted by ${item.userEmail}`} &bull; {new Date(item.createdAt).toLocaleString()}
+              </Typography>
+            </Box>
+          </Grid>
         ))}
-      </List>
+      </Grid>
     </Container>
   );
 };

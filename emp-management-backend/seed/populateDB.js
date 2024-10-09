@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
-const { faker } = require('@faker-js/faker');
-const connectDB = require('../config/db'); // Make sure the path to db config is correct
+const { faker } = require('@faker-js/faker'); // Import faker
+const connectDB = require('../config/db'); // Import DB configuration
 const User = require("../models/user");
 const LearningMaterial = require("../models/LearningMaterial");
 const Module = require("../models/module");
@@ -8,140 +8,150 @@ const Quiz = require("../models/Quiz");
 const Feedback = require("../models/Feedback");
 const Engagement = require("../models/Engagement");
 
-const generateFakeUsers = async (count) => {
+// Function to connect to the database
+const connectToDatabase = async () => {
+  try {
+    await connectDB(); // Connect to the database using the connectDB function
+    console.log("Connected to MongoDB successfully!");
+  } catch (error) {
+    console.error("Failed to connect to MongoDB:", error);
+  }
+};
+
+// Function to generate user data
+const generateUsers = (n) => {
   const users = [];
-  for (let i = 0; i < count; i++) {
+  for (let i = 0; i < n; i++) {
     users.push({
-      firstName: faker.person.firstName(),
+      _id: new mongoose.Types.ObjectId(),
+      firstName: faker.person.firstName(), // Use faker.person instead of faker.name
       lastName: faker.person.lastName(),
       email: faker.internet.email(),
+      role: faker.helpers.arrayElement(['admin', 'employee']),
+      department: faker.helpers.arrayElement(["Data Science", "Data Engineering", "Full Stack"]),
       password: faker.internet.password(),
-      role: "employee",
-      department: faker.helpers.arrayElement(["Data Science", "Data Engineering", "Full Stack"]),
     });
   }
-  await User.insertMany(users);
-  console.log(`${count} users inserted`);
+  return users;
 };
 
-const generateFakeLearningMaterials = async (count) => {
+// Function to generate learning materials
+const generateLearningMaterials = (n) => {
   const materials = [];
-  for (let i = 0; i < count; i++) {
+  for (let i = 0; i < n; i++) {
     materials.push({
-      title: faker.commerce.productName(),
-      description: faker.lorem.sentence(),
-      duration: faker.number.int({ min: 30, max: 180 }), 
+      _id: new mongoose.Types.ObjectId(),
+      title: faker.lorem.sentence(),
+      description: faker.lorem.paragraph(),
+      duration: faker.number.int({ min: 30, max: 180 }), // Updated datatype to number.int
       contentUrl: faker.internet.url(),
       department: faker.helpers.arrayElement(["Data Science", "Data Engineering", "Full Stack"]),
+      createdAt: faker.date.recent(),
     });
   }
-  await LearningMaterial.insertMany(materials);
-  console.log(`${count} learning materials inserted`);
+  return materials;
 };
 
-const generateFakeModules = async (count) => {
-  const materials = await LearningMaterial.find();
+// Function to generate engagement data
+const generateEngagements = (users, learningMaterials, n) => {
+  const engagements = [];
+  for (let i = 0; i < n; i++) {
+    engagements.push({
+      userId: faker.helpers.arrayElement(users)._id, // Use faker.helpers.arrayElement instead of faker.random
+      learningMaterialCompletion: [
+        {
+          learningMaterialId: faker.helpers.arrayElement(learningMaterials)._id,
+          completed: faker.datatype.boolean(),
+        },
+      ],
+      quizScore: faker.number.int({ min: 0, max: 100 }), // Updated datatype to number.int
+    });
+  }
+  return engagements;
+};
+
+// Function to generate feedback data
+const generateFeedbacks = (users, learningMaterials, n) => {
+  const feedbacks = [];
+  for (let i = 0; i < n; i++) {
+    feedbacks.push({
+      userId: faker.helpers.arrayElement(users)._id,
+      learningMaterialId: faker.helpers.arrayElement(learningMaterials)._id,
+      feedback: faker.lorem.sentence(),
+      rating: faker.number.int({ min: 1, max: 5 }), // Updated datatype to number.int
+      createdAt: faker.date.recent(),
+    });
+  }
+  return feedbacks;
+};
+
+// Function to generate module data
+const generateModules = (learningMaterials, n) => {
   const modules = [];
-  for (let i = 0; i < count; i++) {
+  for (let i = 0; i < n; i++) {
     modules.push({
-      title: faker.commerce.productName(),
-      description: faker.lorem.sentence(),
+      _id: new mongoose.Types.ObjectId(),
+      title: faker.lorem.sentence(),
+      description: faker.lorem.paragraph(),
       contentUrl: faker.internet.url(),
-      learningMaterialId: faker.helpers.arrayElement(materials)._id, 
+      learningMaterialId: faker.helpers.arrayElement(learningMaterials)._id,
     });
   }
-  await Module.insertMany(modules);
-  console.log(`${count} modules inserted`);
+  return modules;
 };
 
-const generateFakeQuizzes = async (count) => {
-  const materials = await LearningMaterial.find();
+// Function to generate quiz data
+const generateQuizzes = (learningMaterials, n) => {
   const quizzes = [];
-  for (let i = 0; i < count; i++) {
+  for (let i = 0; i < n; i++) {
     const questions = [];
-    for (let j = 0; j < 4; j++) { 
+    for (let j = 0; j < 5; j++) { // Assuming 5 questions per quiz
       questions.push({
         question: faker.lorem.sentence(),
         options: [faker.lorem.word(), faker.lorem.word(), faker.lorem.word(), faker.lorem.word()],
-        answer: faker.helpers.arrayElement([faker.lorem.word(), faker.lorem.word(), faker.lorem.word(), faker.lorem.word()]), 
+        answer: faker.lorem.word(),
       });
     }
     quizzes.push({
-      title: faker.commerce.productName(),
+      _id: new mongoose.Types.ObjectId(),
+      title: faker.lorem.sentence(),
       questions: questions,
-      learningMaterialId: faker.helpers.arrayElement(materials)._id,
+      learningMaterialId: faker.helpers.arrayElement(learningMaterials)._id,
     });
   }
-  await Quiz.insertMany(quizzes);
-  console.log(`${count} quizzes inserted`);
+  return quizzes;
 };
 
-const generateFakeFeedback = async (count) => {
-  const users = await User.find();
-  const materials = await LearningMaterial.find();
-  const feedbacks = [];
+// Main function to generate and store data
+const seedDatabase = async () => {
+  await connectToDatabase(); // Establish database connection
 
-  for (let i = 0; i < count; i++) {
-    feedbacks.push({
-      userId: faker.helpers.arrayElement(users)._id,
-      learningMaterialId: faker.helpers.arrayElement(materials)._id,
-      feedback: faker.lorem.sentence(),
-      rating: faker.number.int({ min: 1, max: 5 }),
-    });
-  }
-  await Feedback.insertMany(feedbacks);
-  console.log(`${count} feedbacks inserted`);
-};
+  const numEntries = 300; // Number of entries to generate
 
-const generateFakeEngagements = async (count) => {
-  const users = await User.find();
-  const materials = await LearningMaterial.find();
-  const modules = await Module.find();
-  const engagements = [];
-
-  for (let i = 0; i < count; i++) {
-    const learningMaterial = faker.helpers.arrayElement(materials)._id;
-    const user = faker.helpers.arrayElement(users)._id;
-
-    // For each engagement, randomly select some modules to be marked as completed
-    const completedModules = modules
-      .filter((module) => module.learningMaterialId.equals(learningMaterial)) // Filter modules related to the same learning material
-      .map((module) => ({
-        moduleId: module._id,
-        completed: faker.datatype.boolean(),
-      }));
-
-    engagements.push({
-      userId: user,
-      learningMaterialCompletion: [{
-        learningMaterialId: learningMaterial,
-        completed: faker.datatype.boolean(),
-      }],
-      moduleCompletion: completedModules, // Add the modules marked as completed
-      quizScore: faker.number.int({ min: 0, max: 100 }),
-    });
-  }
-  await Engagement.insertMany(engagements);
-  console.log(`${count} engagements inserted`);
-};
-
-// Function to populate the database
-const populateDB = async () => {
-  await connectDB();
+  // Generate data
+  const users = generateUsers(numEntries);
+  const learningMaterials = generateLearningMaterials(numEntries);
+  const modules = generateModules(learningMaterials, numEntries);
+  const quizzes = generateQuizzes(learningMaterials, numEntries);
+  const engagements = generateEngagements(users, learningMaterials, numEntries);
+  const feedbacks = generateFeedbacks(users, learningMaterials, numEntries);
 
   try {
-    await generateFakeUsers(1000);
-    await generateFakeLearningMaterials(1000);
-    await generateFakeModules(1000);
-    await generateFakeQuizzes(1000);
-    await generateFakeFeedback(1000);
-    await generateFakeEngagements(1000);
-    console.log("Database populated successfully!");
+    // Store data in collections
+    await User.insertMany(users);
+    await LearningMaterial.insertMany(learningMaterials);
+    await Module.insertMany(modules);
+    await Quiz.insertMany(quizzes);
+    await Engagement.insertMany(engagements);
+    await Feedback.insertMany(feedbacks);
+
+    console.log("Data has been successfully stored in the database!");
   } catch (error) {
-    console.error("Error populating database:", error);
+    console.error("Error storing data in the database:", error);
   } finally {
-    mongoose.connection.close();
+    mongoose.disconnect(); 
   }
 };
 
-populateDB();
+
+seedDatabase();
