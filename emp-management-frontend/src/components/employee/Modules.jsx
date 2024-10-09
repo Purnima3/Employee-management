@@ -13,10 +13,14 @@ import {
   CardContent,
   CircularProgress,
   Grid,
+  TextField,
+  Rating,
 } from '@mui/material';
 import { useUser } from '../../UserContext'; // Adjust the import path as necessary
 import Layout from './Layout/Layout';
 import CompletionPercentage from './CompletionPercentage'; // Adjust the import path as necessary
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css'; // Import react-toastify CSS
 
 function Module() {
   const { id } = useParams(); // Get the learning material ID from the URL
@@ -29,6 +33,9 @@ function Module() {
   const [quizScore, setQuizScore] = useState(null); // Track user's quiz score
   const [isQuizCompleted, setIsQuizCompleted] = useState(false); // Track if quiz is completed
   const [loading, setLoading] = useState(true); // Loading state
+  const [feedback, setFeedback] = useState(''); // User feedback
+  const [rating, setRating] = useState(0); // User rating
+  const [feedbackSubmitted, setFeedbackSubmitted] = useState(false); // Track if feedback is submitted
 
   // Helper function to generate a unique key for local storage
   const generateLocalStorageKey = (key) => `${user.id}_${id}_${key}`;
@@ -48,11 +55,9 @@ function Module() {
         setModules(modules);
         setQuiz(quiz);
 
-        // Initialize completion status based on engagement data
         const initialCompletionStatus = {};
         let completedCount = 0;
 
-        // Retrieve saved state from local storage for this specific learning material
         const savedCompletionStatus = JSON.parse(localStorage.getItem(generateLocalStorageKey('completionStatus'))) || {};
 
         modules.forEach((module) => {
@@ -102,10 +107,36 @@ function Module() {
       setCompletionStatus(updatedCompletionStatus);
       setCompletedModulesCount((prev) => (completed ? prev + 1 : prev - 1));
 
-      // Save completion status to local storage for this specific learning material
       localStorage.setItem(generateLocalStorageKey('completionStatus'), JSON.stringify(updatedCompletionStatus));
     } catch (error) {
       console.error('Error updating module completion:', error);
+    }
+  };
+
+  const handleFeedbackSubmit = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      await axios.post('http://localhost:3001/feedback/create-feedback', {
+        userId: user.id,
+        learningMaterialId: id,
+        feedback,
+        rating,
+      }, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        }
+      });
+  
+      setFeedbackSubmitted(true);
+      toast.success('Thank you for your feedback!', {
+        position: 'top-right',
+      });
+    } catch (error) {
+      console.error('Error submitting feedback:', error);
+      toast.error('Failed to submit feedback. Please try again.', {
+        position: 'top-right',
+      });
     }
   };
 
@@ -135,19 +166,22 @@ function Module() {
         }
       });
 
-      // Save quiz score and completion status to local storage for this specific learning material
       localStorage.setItem(generateLocalStorageKey('quizScore'), score);
       localStorage.setItem(generateLocalStorageKey('isQuizCompleted'), true);
 
       setQuizScore(score);
       setIsQuizCompleted(true);
-      alert(`Quiz submitted! Your score is ${score}`);
+      toast.success(`Quiz submitted! Your score is ${score}`, {
+        position: toast.POSITION.TOP_RIGHT,
+      });
     } catch (error) {
       console.error('Error submitting quiz:', error);
+      toast.error('Failed to submit quiz. Please try again.', {
+        position: toast.POSITION.TOP_RIGHT,
+      });
     }
   };
 
-  // Calculate completion percentage
   const completionPercentage = modules.length > 0 ? (completedModulesCount / modules.length) * 100 : 0;
 
   return (
@@ -155,7 +189,6 @@ function Module() {
       <Container>
         <Typography variant="h5" gutterBottom>Modules</Typography>
         
-        {/* Completion Percentage Display */}
         <CompletionPercentage modules={modules} completedModulesCount={completedModulesCount} />
 
         <Divider style={{ margin: '20px 0' }} />
@@ -211,7 +244,44 @@ function Module() {
           <Box mt={3}>
             <Typography variant="h6">Quiz: {quiz.title}</Typography>
             {isQuizCompleted ? (
-              <Typography>Your quiz score: {quizScore}</Typography>
+              <>
+                <Typography>Your quiz score: {quizScore}</Typography>
+
+                {!feedbackSubmitted ? (
+                  <Box mt={2}>
+                    <Typography>Provide feedback for this material:</Typography>
+                    <TextField
+                      label="Feedback"
+                      multiline
+                      rows={4}
+                      variant="outlined"
+                      fullWidth
+                      value={feedback}
+                      onChange={(e) => setFeedback(e.target.value)}
+                      style={{ marginBottom: '16px' }}
+                    />
+                    <Box display="flex" alignItems="center">
+                      <Typography component="legend">Rating:</Typography>
+                      <Rating
+                        name="quiz-rating"
+                        value={rating}
+                        onChange={(event, newValue) => setRating(newValue)}
+                      />
+                    </Box>
+                    <Button
+                      variant="contained"
+                      color="primary"
+                      onClick={handleFeedbackSubmit}
+                      style={{ marginTop: '16px' }}
+                      disabled={rating === 0 || !feedback.trim()}
+                    >
+                      Submit Feedback
+                    </Button>
+                  </Box>
+                ) : (
+                  <Typography>Thank you for your feedback!</Typography>
+                )}
+              </>
             ) : (
               <>
                 {quiz.questions.map((question, index) => (
@@ -243,6 +313,9 @@ function Module() {
             )}
           </Box>
         )}
+
+        {/* Toast Container */}
+        <ToastContainer />
       </Container>
     </Layout>
   );

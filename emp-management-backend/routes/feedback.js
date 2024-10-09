@@ -1,13 +1,13 @@
 // routes/feedback.js
 const express = require('express');
-const {createFeedback,getAllFeedback,feedbackByMaterialId,deleteFeedback} = require('../controller/Feedback');
+const FeedbackController = require('../controller/Feedback');
 const authMiddleware = require('../middleware/authMiddleware');
 const router = express.Router()
 
-router.post("/create-feedback",createFeedback,authMiddleware)
-router.get("/get-all-feedback",getAllFeedback,authMiddleware)
-router.get('/:materialId',feedbackByMaterialId,authMiddleware)
-router.delete('/delete-feedback/:id',deleteFeedback,authMiddleware)
+router.post("/create-feedback",FeedbackController.setFeedback,authMiddleware)
+router.get("/get-all-feedback",FeedbackController.getAllFeedback,authMiddleware)
+router.get('/:materialId',FeedbackController.feedbackByMaterialId,authMiddleware)
+router.delete('/delete-feedback/:id',FeedbackController.deleteFeedback,authMiddleware)
 
 
 module.exports = router;

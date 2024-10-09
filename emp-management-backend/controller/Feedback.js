@@ -1,8 +1,7 @@
 
 const Feedback = require('../models/Feedback'); 
 
-
-const deleteFeedback = async (req, res) => {
+exports.deleteFeedback = async (req, res) => {
     try {
         const feedbackId  = req.params.id;
         const deletedFeedback = await Feedback.findByIdAndDelete(feedbackId);
@@ -18,7 +17,7 @@ const deleteFeedback = async (req, res) => {
       }
 }
 
-const createFeedback = async (req, res) => {
+exports.createFeedback = async (req, res) => {
     const feedback = new Feedback({
               userId: req.body.userId,
               materialId: req.body.materialId,
@@ -34,7 +33,7 @@ const createFeedback = async (req, res) => {
 
 }
 
-const feedbackByMaterialId = async (req, res) => {
+exports.feedbackByMaterialId = async (req, res) => {
     try {
       
       const feedbacks = await Feedback.find({ learningMaterialId: req.params.materialId }) 
@@ -45,7 +44,7 @@ const feedbackByMaterialId = async (req, res) => {
     }
   };
 
-  const getAllFeedback = async (req, res) => {
+  exports.getAllFeedback = async (req, res) => {
     try {
       const feedbacks = await Feedback.find(); 
       res.json(feedbacks);
@@ -55,5 +54,29 @@ const feedbackByMaterialId = async (req, res) => {
     }
   };
  
-
-module.exports = {deleteFeedback,createFeedback,feedbackByMaterialId,getAllFeedback}
+  exports.setFeedback = async(req,res) =>
+  {
+    try {
+          const { userId, learningMaterialId, feedback, rating } = req.body;
+          const newFeedback = new Feedback({ userId, learningMaterialId, feedback, rating });
+          await newFeedback.save();
+          res.status(201).json({ message: 'Feedback submitted successfully' });
+        } catch (error) {
+          console.error('Error submitting feedback:', error);
+          res.status(500).json({ message: 'Error submitting feedback' });
+        }
+  }
+  
+  // Create new feedback
+  // router.post('/create', async (req, res) => {
+  //   try {
+  //     const { userId, learningMaterialId, feedback, rating } = req.body;
+  //     const newFeedback = new Feedback({ userId, learningMaterialId, feedback, rating });
+  //     await newFeedback.save();
+  //     res.status(201).json({ message: 'Feedback submitted successfully' });
+  //   } catch (error) {
+  //     console.error('Error submitting feedback:', error);
+  //     res.status(500).json({ message: 'Error submitting feedback' });
+  //   }
+  // });
+  
