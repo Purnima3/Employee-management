@@ -16,28 +16,28 @@ import {
   TextField,
   Rating,
 } from '@mui/material';
-import { useUser } from '../../UserContext'; // Adjust the import path as necessary
+import { useUser } from '../../UserContext'; 
 import Layout from './Layout/Layout';
-import CompletionPercentage from './CompletionPercentage'; // Adjust the import path as necessary
+import CompletionPercentage from './CompletionPercentage';
 import { ToastContainer, toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css'; // Import react-toastify CSS
+import 'react-toastify/dist/ReactToastify.css'; 
 
 function Module() {
-  const { id } = useParams(); // Get the learning material ID from the URL
-  const { user } = useUser(); // Access user from context
+  const { id } = useParams(); 
+  const { user } = useUser(); 
   const [modules, setModules] = useState([]);
   const [quiz, setQuiz] = useState(null);
   const [quizAnswers, setQuizAnswers] = useState([]);
-  const [completionStatus, setCompletionStatus] = useState({}); // Track module completion
-  const [completedModulesCount, setCompletedModulesCount] = useState(0); // Track completed modules
-  const [quizScore, setQuizScore] = useState(null); // Track user's quiz score
-  const [isQuizCompleted, setIsQuizCompleted] = useState(false); // Track if quiz is completed
-  const [loading, setLoading] = useState(true); // Loading state
-  const [feedback, setFeedback] = useState(''); // User feedback
-  const [rating, setRating] = useState(0); // User rating
-  const [feedbackSubmitted, setFeedbackSubmitted] = useState(false); // Track if feedback is submitted
+  const [completionStatus, setCompletionStatus] = useState({}); 
+  const [completedModulesCount, setCompletedModulesCount] = useState(0); 
+  const [quizScore, setQuizScore] = useState(null); 
+  const [isQuizCompleted, setIsQuizCompleted] = useState(false); 
+  const [loading, setLoading] = useState(true); 
+  const [feedback, setFeedback] = useState(''); 
+  const [rating, setRating] = useState(0); 
+  const [feedbackSubmitted, setFeedbackSubmitted] = useState(false); 
 
-  // Helper function to generate a unique key for local storage
+
   const generateLocalStorageKey = (key) => `${user.id}_${id}_${key}`;
 
   useEffect(() => {
@@ -81,7 +81,7 @@ function Module() {
       } catch (error) {
         console.error('Error fetching modules and quiz:', error);
       } finally {
-        setLoading(false); // Set loading to false when data is fetched
+        setLoading(false); 
       }
     };
 
@@ -172,12 +172,12 @@ function Module() {
       setQuizScore(score);
       setIsQuizCompleted(true);
       toast.success(`Quiz submitted! Your score is ${score}`, {
-        position: toast.POSITION.TOP_RIGHT,
+        position: 'top-right',
       });
     } catch (error) {
       console.error('Error submitting quiz:', error);
       toast.error('Failed to submit quiz. Please try again.', {
-        position: toast.POSITION.TOP_RIGHT,
+        position:'top-right',
       });
     }
   };
@@ -198,19 +198,21 @@ function Module() {
             <CircularProgress />
           </Box>
         ) : (
-          <Grid container spacing={2}>
+          <Grid container  spacing={3}>
             {modules.length > 0 ? (
               modules.map((module) => (
                 <Grid item xs={12} sm={6} md={4} key={module._id}>
                   <Card
                     variant="outlined"
+                    elevation={3} 
                     sx={{
                       boxShadow: 2,
                       backgroundColor: completionStatus[module._id] ? '#e0f7fa' : 'white',
                       transition: 'background-color 0.3s, box-shadow 0.3s',
                       '&:hover': {
                         backgroundColor: '#f1f8e9',
-                        boxShadow: 4,
+                        boxShadow: 6,
+                        transform: 'scale(1.02)',  
                       },
                     }}
                   >
@@ -224,7 +226,13 @@ function Module() {
                           <Typography
                             component="a"
                             onClick={() => handleModuleClick(module._id, module.contentUrl)}
-                            style={{ cursor: 'pointer', textDecoration: 'underline', color: 'blue', fontWeight: 'bold' }}
+                            sx={{
+                              cursor: 'pointer',
+                              textDecoration: 'underline',
+                              color: 'primary.main',
+                              fontWeight: 'bold',
+                              fontSize: '1.1rem', 
+                            }}
                           >
                             {module.title}
                           </Typography>
@@ -240,80 +248,82 @@ function Module() {
           </Grid>
         )}
 
-        {quiz && (
-          <Box mt={3}>
-            <Typography variant="h6">Quiz: {quiz.title}</Typography>
-            {isQuizCompleted ? (
-              <>
-                <Typography>Your quiz score: {quizScore}</Typography>
+{quiz && (
+  <Box mt={3}>
+    <Typography variant="h6">Quiz: {quiz.title}</Typography>
+    {isQuizCompleted ? (
+      <>
+        <Typography>Your quiz score: {quizScore}</Typography>
 
-                {!feedbackSubmitted ? (
-                  <Box mt={2}>
-                    <Typography>Provide feedback for this material:</Typography>
-                    <TextField
-                      label="Feedback"
-                      multiline
-                      rows={4}
-                      variant="outlined"
-                      fullWidth
-                      value={feedback}
-                      onChange={(e) => setFeedback(e.target.value)}
-                      style={{ marginBottom: '16px' }}
-                    />
-                    <Box display="flex" alignItems="center">
-                      <Typography component="legend">Rating:</Typography>
-                      <Rating
-                        name="quiz-rating"
-                        value={rating}
-                        onChange={(event, newValue) => setRating(newValue)}
-                      />
-                    </Box>
-                    <Button
-                      variant="contained"
-                      color="primary"
-                      onClick={handleFeedbackSubmit}
-                      style={{ marginTop: '16px' }}
-                      disabled={rating === 0 || !feedback.trim()}
-                    >
-                      Submit Feedback
-                    </Button>
-                  </Box>
-                ) : (
-                  <Typography>Thank you for your feedback!</Typography>
-                )}
-              </>
-            ) : (
-              <>
-                {quiz.questions.map((question, index) => (
-                  <Box key={index} mb={2}>
-                    <Typography variant="body1">{question.question}</Typography>
-                    {question.options.map((option, optionIndex) => (
-                      <Box key={optionIndex} display="flex" alignItems="center">
-                        <input
-                          type="radio"
-                          name={`question-${index}`}
-                          value={option}
-                          onChange={() => setQuizAnswers((prev) => {
-                            const updatedAnswers = [...prev];
-                            updatedAnswers[index] = option;
-                            return updatedAnswers;
-                          })}
-                        />
-                        <Typography variant="body2" ml={1}>
-                          {option}
-                        </Typography>
-                      </Box>
-                    ))}
-                  </Box>
-                ))}
-                <Button variant="contained" color="primary" onClick={handleQuizSubmit}>
-                  Submit Quiz
-                </Button>
-              </>
-            )}
+        {/* Display feedback form only when the quiz is completed and all modules are 100% complete */}
+        {completionPercentage === 100 && !feedbackSubmitted ? (
+          <Box mt={2}>
+            <Typography>Provide feedback for this material:</Typography>
+            <TextField
+              label="Feedback"
+              multiline
+              rows={4}
+              variant="outlined"
+              fullWidth
+              value={feedback}
+              onChange={(e) => setFeedback(e.target.value)}
+              style={{ marginBottom: '16px' }}
+            />
+            <Box display="flex" alignItems="center">
+              <Typography component="legend">Rating:</Typography>
+              <Rating
+                name="quiz-rating"
+                value={rating}
+                onChange={(event, newValue) => setRating(newValue)}
+              />
+            </Box>
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={handleFeedbackSubmit}
+              style={{ marginTop: '16px' }}
+              disabled={rating === 0 || !feedback.trim()}
+            >
+              Submit Feedback
+            </Button>
           </Box>
+        ) : (
+          <Typography>Thank you for your feedback!</Typography>
         )}
-
+      </>
+    ) : (
+      <>
+        {quiz.questions.map((question, index) => (
+          <Box key={index} mb={2}>
+            <Typography variant="body1">{question.question}</Typography>
+            {question.options.map((option, optionIndex) => (
+              <Box key={optionIndex} display="flex" alignItems="center">
+                <input
+                  type="radio"
+                  name={`question-${index}`}
+                  value={option}
+                  onChange={() =>
+                    setQuizAnswers((prev) => {
+                      const updatedAnswers = [...prev];
+                      updatedAnswers[index] = option;
+                      return updatedAnswers;
+                    })
+                  }
+                />
+                <Typography variant="body2" ml={1}>
+                  {option}
+                </Typography>
+              </Box>
+            ))}
+          </Box>
+        ))}
+        <Button variant="contained" color="primary" onClick={handleQuizSubmit}>
+          Submit Quiz
+        </Button>
+      </>
+    )}
+  </Box>
+)}
         {/* Toast Container */}
         <ToastContainer />
       </Container>

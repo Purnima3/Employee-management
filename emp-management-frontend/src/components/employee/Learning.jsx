@@ -14,13 +14,12 @@ import {
 import { useNavigate } from 'react-router-dom';
 
 function Learning() {
-  const { user } = useUser(); // Access user from context
+  const { user } = useUser(); 
   const [learningMaterials, setLearningMaterials] = useState([]);
-  const [searchTerm, setSearchTerm] = useState(''); // State for search input
-  const navigate = useNavigate(); // For navigation
+  const [searchTerm, setSearchTerm] = useState(''); 
+  const navigate = useNavigate(); 
 
   useEffect(() => {
-    // Fetch all learning materials on component load
     const fetchLearningMaterials = async () => {
       const token = localStorage.getItem('token');
       try {
@@ -30,24 +29,23 @@ function Learning() {
             'Content-Type': 'application/json',
           }
         });
-        // Filter materials based on user department
         const filteredMaterials = response.data.filter(material => material.department === user.department);
         setLearningMaterials(filteredMaterials);
-        console.log('Learning Materials:', filteredMaterials); // Log the filtered materials
+        console.log('Learning Materials:', filteredMaterials); 
       } catch (error) {
         console.error('Error fetching learning materials:', error);
       }
     };
 
     fetchLearningMaterials();
-  }, [user.department]); // Add user.department as a dependency
+  }, [user.department]);
 
-  // Function to handle search input changes
+  
   const handleSearchChange = (event) => {
-    setSearchTerm(event.target.value); // Update the search term with the input value
+    setSearchTerm(event.target.value); 
   };
 
-  // Filter learning materials based on the search term
+ 
   const filteredMaterials = learningMaterials.filter((material) =>
     material.title.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -90,7 +88,7 @@ function Learning() {
         fullWidth
         margin="normal"
         value={searchTerm}
-        onChange={handleSearchChange} // Update search term on input change
+        onChange={handleSearchChange} 
         sx={{
           backgroundColor: 'white',
           borderRadius: '4px',
@@ -101,21 +99,29 @@ function Learning() {
         {filteredMaterials.map((material) => (
           <Grid item xs={12} sm={6} md={4} key={material._id}>
             <Card
-              elevation={4} // Add elevation for shadow
-              sx={{
-                transition: 'transform 0.2s, box-shadow 0.2s',
-                '&:hover': {
-                  transform: 'scale(1.05)', // Scale effect on hover
-                  boxShadow: 8, // Increased shadow on hover
-                },
-              }}
+             elevation={4}
+             sx={{
+               height: '100%', 
+               transition: 'transform 0.2s, box-shadow 0.2s',
+               '&:hover': {
+                 transform: 'scale(1.05)',
+                 boxShadow: 8,
+               },
+             }}
             >
               <CardActionArea onClick={() => handleSelectMaterial(material._id)}>
-                <CardContent>
+                <CardContent
+                  sx={{
+                    minHeight: '150px', 
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'space-between',
+                  }}
+                >
                   <Typography variant="h5" sx={{ color: 'primary.main' }}>
                     {material.title}
                   </Typography>
-                  <Typography variant="body2" color="textSecondary" sx={{ marginTop: 1 }}>
+                  <Typography variant="body2" sx={{ marginTop: 1}}>
                     {material.description}
                   </Typography>
                 </CardContent>

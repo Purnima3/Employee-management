@@ -164,11 +164,32 @@ function Login() {
   };
 
   return (
-    <ThemeProvider theme={defaultTheme} sx={{ alignItems: 'center'}}>
-      <Container component="main" maxWidth="xs" sx={{ bgcolor: '#f5f5f5', borderRadius: '8px', boxShadow: 3 }}>
+    <ThemeProvider theme={defaultTheme}>
+      <Container
+        component="main"
+        maxWidth="xs"
+        sx={{
+          height: '100vh',
+          width: '100vh',
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'center',
+          alignItems: 'center',
+          borderRadius: '8px',
+        }}
+      >
         <CssBaseline />
         <ToastContainer />
-        <Box sx={{ marginTop: 8, display: 'flex', flexDirection: 'column', alignItems: 'center', p: 3 }}>
+        <Box 
+        sx={{ display: 'flex',
+         flexDirection: 'column',  
+         p: 3,
+         justifyContent: 'center',
+         alignItems: 'center',
+         borderRadius: '8px',
+         boxShadow: '0 4px 20px rgba(0,0,0,0.1)', // Add a shadow
+         backgroundColor: '#f5f5f5', 
+          }}>
           <Avatar sx={{ m: 1, bgcolor: 'secondary.main' }}>
             <LockOutlinedIcon />
           </Avatar>

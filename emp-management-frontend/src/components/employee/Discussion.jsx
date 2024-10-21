@@ -43,7 +43,6 @@ const Discussion = () => {
 
   const handleMaterialChange = (event) => {
     setSelectedMaterial(event.target.value);
-    // Fetch discussions for the selected material here
     fetchDiscussions(event.target.value);
   };
 
@@ -72,7 +71,7 @@ const Discussion = () => {
         }
       );
       setDiscussion('');
-      fetchDiscussions(selectedMaterial); // Refresh discussions
+      fetchDiscussions(selectedMaterial); 
     } catch (error) {
       console.error('Error submitting discussion:', error);
     }
@@ -124,9 +123,9 @@ const Discussion = () => {
               elevation={3}
               padding={2}
               maxWidth="75%"
-              marginLeft={user.id === item.userId ? 'auto' : 0} // Right-align user's posts
-              marginRight={user.id === item.userId ? 0 : 'auto'} // Left-align others' posts
-              bgcolor={user.id === item.userId ? 'rgba(63, 81, 181, 0.1)' : 'rgba(200, 200, 200, 0.2)'} // Lighter colors
+              marginLeft={user.id === item.userId ? 'auto' : 0} 
+              marginRight={user.id === item.userId ? 0 : 'auto'} 
+              bgcolor={user.id === item.userId ? 'rgba(63, 81, 181, 0.1)' : 'rgba(200, 200, 200, 0.2)'} 
               color={user.id === item.userId ? 'rgba(63, 81, 181, 0.8)' : 'text.primary'}
               borderRadius={4}
             >

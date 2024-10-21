@@ -141,7 +141,7 @@ const generateDiscussions = (users, learningMaterials, n) => {
 const seedDatabase = async () => {
   await connectToDatabase(); // Establish database connection
 
-  const numEntries = 1000; // Number of entries to generate
+  const numEntries = 20; // Number of entries to generate
 
   // Generate data
   const users = generateUsers(numEntries);

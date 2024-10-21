@@ -21,13 +21,12 @@ import { useUser } from '../../UserContext';
 const drawerWidth = 240;
 
 function Employee() {
-  const { user } = useUser(); // Access user from context
-  // Initialize activeSection from localStorage or default to 'learnings'
+  const { user } = useUser(); 
   const [activeSection, setActiveSection] = useState(() => {
-    return localStorage.getItem('activeSection') || 'learnings'; // Default to 'learnings'
+    return localStorage.getItem('activeSection') || 'learnings';
   });
 
-  // Store activeSection in localStorage whenever it changes
+ 
   useEffect(() => {
     localStorage.setItem('activeSection', activeSection);
   }, [activeSection]);
@@ -35,7 +34,7 @@ function Employee() {
   // Handle Logout
   const handleLogout = () => {
     localStorage.removeItem('token');
-    localStorage.removeItem('activeSection'); // Remove activeSection on logout
+    localStorage.removeItem('activeSection'); 
     window.location.href = '/login';
   };
 
@@ -72,12 +71,8 @@ function Employee() {
             <ListItemIcon><LocalLibrary /></ListItemIcon>
             <ListItemText primary="Learnings" />
           </ListItem>
-          <ListItem button onClick={() => setActiveSection('feedback')}>
-            <ListItemIcon><FeedbackIcon /></ListItemIcon>
-            <ListItemText primary="Feedback" />
-          </ListItem>
           <ListItem button onClick={() => setActiveSection('discussion')}>
-            <ListItemIcon><LocalLibrary /></ListItemIcon>
+            <ListItemIcon><FeedbackIcon /></ListItemIcon>
             <ListItemText primary="Discussion" />
           </ListItem>
           {/* Logout Button in Drawer */}
@@ -97,7 +92,7 @@ function Employee() {
       <Box component="main" sx={{ flexGrow: 1, bgcolor: 'background.default', p: 14, marginTop: '44px' }}>
         {activeSection === 'learnings' && <Learning />}
         {activeSection === 'discussion' && <Discussion />}
-        {activeSection === 'feedback' && <Feedback />}
+        {/* {activeSection === 'feedback' && <Feedback />} */}
       </Box>
     </Box>
   );
