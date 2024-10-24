@@ -3,7 +3,7 @@
 This is an Employee Management System designed to facilitate the management of employees, learning materials, and feedback within an organization. It provides both admin and employee views, each with distinct features for effective management and engagement.
 
 ## Table of Contents
-
+- [Archietechture](#Archietechture)
 - [Features](#features)
 - [Admin View](#admin-view)
 - [Employee View](#employee-view)
@@ -11,6 +11,8 @@ This is an Employee Management System designed to facilitate the management of e
 - [Usage](#usage)
 - [Contributing](#contributing)
 - [License](#license)
+## Archietechture
+![image](https://github.com/user-attachments/assets/dd890965-ae7e-4c16-8998-9ba94d988d59)
 
 ## Features
 
