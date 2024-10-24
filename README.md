@@ -56,4 +56,4 @@ This is an Employee Management System designed to facilitate the management of e
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/yourusername/employee-management.git
+   git clone https://github.com/Purnima3/Employee-management.git
