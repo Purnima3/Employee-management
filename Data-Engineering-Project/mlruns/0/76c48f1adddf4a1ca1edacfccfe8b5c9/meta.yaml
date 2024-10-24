@@ -1,0 +1,15 @@
+artifact_uri: file:///C:/Users/PurnimaKabadwal/Desktop/Employee-management/Data-Engineering-Project/mlruns/0/76c48f1adddf4a1ca1edacfccfe8b5c9/artifacts
+end_time: 1729745971270
+entry_point_name: ''
+experiment_id: '0'
+lifecycle_stage: active
+run_id: 76c48f1adddf4a1ca1edacfccfe8b5c9
+run_name: kindly-vole-662
+run_uuid: 76c48f1adddf4a1ca1edacfccfe8b5c9
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1729745966113
+status: 3
+tags: []
+user_id: PurnimaKabadwal

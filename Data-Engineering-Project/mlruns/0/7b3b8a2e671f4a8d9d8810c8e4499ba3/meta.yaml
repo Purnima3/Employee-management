@@ -1,0 +1,15 @@
+artifact_uri: file:///C:/Users/PurnimaKabadwal/Desktop/Employee-management/Data-Engineering-Project/mlruns/0/7b3b8a2e671f4a8d9d8810c8e4499ba3/artifacts
+end_time: 1729745879357
+entry_point_name: ''
+experiment_id: '0'
+lifecycle_stage: active
+run_id: 7b3b8a2e671f4a8d9d8810c8e4499ba3
+run_name: fun-snail-214
+run_uuid: 7b3b8a2e671f4a8d9d8810c8e4499ba3
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1729745869919
+status: 3
+tags: []
+user_id: PurnimaKabadwal
