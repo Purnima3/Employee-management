@@ -9,8 +9,7 @@ This is an Employee Management System designed to facilitate the management of e
 - [Employee View](#employee-view)
 - [Installation](#installation)
 - [Usage](#usage)
-- [Contributing](#contributing)
-- [License](#license)
+- 
 ## Archietechture
 ![image](https://github.com/user-attachments/assets/dd890965-ae7e-4c16-8998-9ba94d988d59)
 
